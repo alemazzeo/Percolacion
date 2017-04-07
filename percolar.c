@@ -2,27 +2,28 @@
 #include "percolar.h"
 
 #define	A		16807
-#define M 		21474836747
+#define M 		2147483647
 #define Q		127773
 #define R		2836
 #define S		260572
 
-void llenar(int *red, int n, float proba)
+void llenar(int *red, int n, float proba, int *semilla)
 {
-	int n2=n*n
+	int i;
+	int n2=n*n;
 	
-	for(int i=0;i<n2;i++)
+	for(i=0;i<n2;i++)
 	{
-		if (prob<random(p)) *(red+i)=0; else *(red+i)=1;
+		if (proba<random(semilla)) *(red+i)=0; else *(red+i)=1;
 	}
 }
 
 void imprimir(int *red, int n)
 {
-	int i,j,n;
+	int i,j,n2;
 	
 	j=1;
-	n2=n*n*
+	n2=n*n;
 	
 	printf("\n");
 	for(i=0;i<n2;i++)
