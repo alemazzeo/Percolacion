@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "percolar.h"
 
 #define	A		16807
@@ -14,8 +15,90 @@ void llenar(int *red, int n, float proba, int *semilla)
 	
 	for(i=0;i<n2;i++)
 	{
-		if (proba<random(semilla)) *(red+i)=0; else *(red+i)=1;
+		if (proba<rnd(semilla)) *(red+i)=0; else *(red+i)=1;
 	}
+
+}
+
+int hoshen(int *red, int n)
+{
+	int i,j,k,n2,s1,s2,frag;
+	int *clase;
+	
+	n2=n*n;
+	frag=0;
+	clase=(int *)malloc(n*n*sizeof(int));
+	
+	for (k=0;k<n2;k++) *(clase+k)=frag;
+	
+	s1=0;
+	frag=2;
+	
+	if (*red) frag=actualizar(red,clase,s1,frag);
+	
+	for (i=1;i<n;i++)
+	{
+		if (*(red+i))
+		{
+			s1=*(red+i-1);
+			frag=actualizar(red+i,clase,s1,frag);
+		}
+	}
+	
+	for(i=n;i<n*n;i=i+n)
+	{
+		if (*(red+i))
+		{
+			s1=*(red+i-n);
+			frag=actualizar(red+i,clase,s1,frag);
+		}
+		
+		for (j=1;j<n;j++)
+		{
+			if (*(red+i+j))
+			{
+				s1=*(red+i+j-1);
+				s2=*(red+i+j-n);
+				
+				if (s1*s2>0)
+				{
+					etiqueta_falsa(red+i+j,clase,s1,s2);
+				}
+				else
+				{
+					if (s1!=0)
+					{		
+						frag=actualizar(red+i+j,clase,s1,frag);
+					}
+					else
+					{
+						frag=actualizar(red+i+j,clase,s2,frag);
+					}
+				}
+			}
+		}
+	}
+	
+	corregir_etiqueta(red,clase,n);	
+	free(clase);	
+	return 0;
+}
+
+int actualizar(int *red, int *clase, int s, int frag)
+{
+	return 0;
+}
+void etiqueta_falsa(int *red, int *clase, int s1, int s2)
+{
+
+}
+void corregir_etiqueta(int *red, int *clase, int n)
+{
+
+}
+int	percola(int *red, int n)
+{
+	return 0;
 }
 
 void imprimir(int *red, int n)
@@ -39,7 +122,7 @@ void imprimir(int *red, int n)
 	
 }
 
-float random(int *semilla)
+float rnd(int *semilla)
 {
 	int k;
 	float x;
