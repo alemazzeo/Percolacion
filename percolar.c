@@ -149,6 +149,7 @@ void corregir_etiqueta(int *red, int *clase, int n)
 }
 int	percola(int *red, int n)
 {
+	int i;	
 	return 0;
 }
 

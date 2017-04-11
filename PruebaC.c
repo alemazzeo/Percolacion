@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "percolar.h"
 
-#define N		32
+#define N		64
 
 int main()
 {
