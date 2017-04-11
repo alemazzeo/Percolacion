@@ -86,11 +86,22 @@ int hoshen(int *red, int n)
 
 int actualizar(int *red, int *clase, int s, int frag)
 {
-	return 0;
+	if (s==0)
+	{
+		*red = frag;
+		*(clase+frag) = frag;
+		return frag+1;
+	}
+	else
+	{
+		*red = s;
+		return frag;
+	}
+	
 }
 void etiqueta_falsa(int *red, int *clase, int s1, int s2)
 {
-
+	
 }
 void corregir_etiqueta(int *red, int *clase, int n)
 {
@@ -109,9 +120,10 @@ void imprimir(int *red, int n)
 	n2=n*n;
 	
 	printf("\n");
+	
 	for(i=0;i<n2;i++)
-	{
-		printf("%d",*(red+i));
+	{		
+		printf("%03d ", *(red+i));
 		if (j==(i+1)/n)
 		{
 			printf("\n");

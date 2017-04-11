@@ -11,4 +11,6 @@ int main()
 
 	llenar(red, n, proba, &s);
 	imprimir(red, n);
+	hoshen(red, n);
+	imprimir(red, n);
 }
