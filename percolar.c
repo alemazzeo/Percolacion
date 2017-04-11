@@ -31,11 +31,6 @@ int hoshen(int *red, int n)
 	
 	for (k=0;k<n2;k++) *(clase+k)=frag;
 	
-	for (i=0; i<20;i++)
-	{
-		printf("%d ", clase[i]);
-	}
-	
 	s1=0;
 	frag=2;
 	
