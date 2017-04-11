@@ -31,6 +31,11 @@ int hoshen(int *red, int n)
 	
 	for (k=0;k<n2;k++) *(clase+k)=frag;
 	
+	for (i=0; i<20;i++)
+	{
+		printf("%d ", clase[i]);
+	}
+	
 	s1=0;
 	frag=2;
 	
@@ -101,11 +106,51 @@ int actualizar(int *red, int *clase, int s, int frag)
 }
 void etiqueta_falsa(int *red, int *clase, int s1, int s2)
 {
+	while (clase[s1]<0)
+	{
+		s1 = -clase[s1];
+	}
 	
+	while (clase[s2]<0)
+	{
+		s2 = -clase[s2];
+	}
+	
+	if (s1<s2) 
+	{
+		clase[s2] = -s1;
+		clase[s1] = s1;
+		*red = s1;
+	}
+	else
+	{
+		clase[s1] = -s2;
+		clase[s2] = s2;
+		*red = s2;
+	}
+
 }
 void corregir_etiqueta(int *red, int *clase, int n)
 {
-
+	int i,j, n2;
+	n2 = n * n;
+	
+	i=2;
+	while (clase[i] != 0)
+	{
+		j=i;
+		while(clase[j]<0)
+		{
+			j = -clase[j];
+		}
+		clase[i] = clase[j];
+		i++;
+	}
+	
+	for (i=0; i<n2; i++)
+	{
+		*(red+i) = clase[*(red+i)];
+	}
 }
 int	percola(int *red, int n)
 {
