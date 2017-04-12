@@ -5,7 +5,7 @@
 
 int main()
 {
-	int n=N, red[n*n];
+	int n=N, red[n*n], clase[n*n];
 	float proba=0.5;
 	int s=260572;
 	int i=0,j=0;
@@ -15,7 +15,7 @@ int main()
 		for (j=0;j<1000;j++)
 		{
 			llenar(red, n, proba, &s);
-			hoshen(red, n);
+			hoshen(red, n, clase);
 		}
 		printf("*");
 		fflush(stdout);

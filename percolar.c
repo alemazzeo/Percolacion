@@ -20,14 +20,12 @@ void llenar(int *red, int n, float proba, int *semilla)
 
 }
 
-int hoshen(int *red, int n)
+int hoshen(int *red, int n, int *clase)
 {
 	int i,j,k,n2,s1,s2,frag;
-	int *clase;
 	
 	n2=n*n;
 	frag=0;
-	clase=(int *)malloc(n*n*sizeof(int));
 	
 	for (k=0;k<n2;k++) *(clase+k)=frag;
 	
