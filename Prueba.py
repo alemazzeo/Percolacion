@@ -1,7 +1,7 @@
 import ctypes as C
 import numpy as np
 
-N = 124
+N = 256
 prob = 0.5
 semilla = 26572
 
@@ -17,6 +17,7 @@ class Percolar():
 		self.intp = C.POINTER(C.c_int)
 
 		self.red = np.zeros(self.N**2, dtype=C.c_int)
+		self.clase = np.zeros(self.N**2, dtype=C.c_int)
 
 		self.percolar.llenar(self.red.ctypes.data_as(self.intp), C.c_int(self.N), 
 						C.c_float(self.prob), C.byref(self.semilla))
@@ -30,7 +31,18 @@ class Percolar():
 						C.c_float(self.prob), C.byref(self.semilla))
 
 	def hoshen(self):
-		self.percolar.hoshen(red.ctypes.data_as(self.intp), C.c_int(self.N))
+		self.percolar.hoshen(self.red.ctypes.data_as(self.intp), C.c_int(self.N), 
+						self.clase.ctypes.data_as(self.intp))
+						
+	def imprimir(self):
+		for i in self.red:
+			print (str(i) + " ")
 
 mired = Percolar(N, prob, semilla)
-mired.hoshen()
+for i in range(27):
+	for j in range(1000):
+		mired.llenar(prob, semilla+i)
+		mired.hoshen()
+	print ("*")
+		
+

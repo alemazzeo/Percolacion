@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "percolar.h"
 
-#define N		30
+#define N		256
 
 int main()
 {
