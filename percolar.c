@@ -77,8 +77,7 @@ int hoshen(int *red, int n, int *clase)
 		}
 	}
 	
-	corregir_etiqueta(red,clase,n);	
-	free(clase);	
+	corregir_etiqueta(red,clase,n);		
 	return 0;
 }
 

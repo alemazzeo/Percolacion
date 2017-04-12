@@ -1,14 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "percolar.h"
 
-#define N		124
+#define N		30
 
 int main()
 {
-	int n=N, red[n*n], clase[n*n];
+	int n=N, *red, *clase;
 	float proba=0.5;
 	int s=260572;
 	int i=0,j=0;
+	
+	red = (int *)malloc(n*n*sizeof(int));
+	clase = (int *)malloc(n*n*sizeof(int));
 
 	for (i=0;i<27;i++)
 	{
