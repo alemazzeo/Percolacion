@@ -12,7 +12,7 @@ void llenar(int *red, int n, float proba, int *semilla)
 {
     int i;
     int n2=n*n;
-        
+
     for(i=0;i<n2;i++)
     {
         if (proba<rnd(semilla)) *(red+i)=0; else *(red+i)=1;
@@ -23,17 +23,17 @@ void llenar(int *red, int n, float proba, int *semilla)
 int hoshen(int *red, int n, int *clase)
 {
     int i,j,k,n2,s1,s2,frag;
-        
+
     n2=n*n;
     frag=0;
-        
+
     for (k=0;k<n2;k++) *(clase+k)=frag;
-        
+
     s1=0;
     frag=2;
-        
+
     if (*red) frag=actualizar(red,clase,s1,frag);
-        
+
     for (i=1;i<n;i++)
     {
         if (*(red+i))
@@ -42,7 +42,7 @@ int hoshen(int *red, int n, int *clase)
             frag=actualizar(red+i,clase,s1,frag);
         }
     }
-        
+
     for(i=n;i<n*n;i=i+n)
     {
         if (*(red+i))
@@ -50,14 +50,14 @@ int hoshen(int *red, int n, int *clase)
             s1=*(red+i-n);
             frag=actualizar(red+i,clase,s1,frag);
         }
-                
+
         for (j=1;j<n;j++)
         {
             if (*(red+i+j))
             {
                 s1=*(red+i+j-1);
                 s2=*(red+i+j-n);
-                                
+
                 if (s1*s2>0)
                 {
                     etiqueta_falsa(red+i+j,clase,s1,s2);
@@ -65,7 +65,7 @@ int hoshen(int *red, int n, int *clase)
                 else
                 {
                     if (s1!=0)
-                    {           
+                    {
                         frag=actualizar(red+i+j,clase,s1,frag);
                     }
                     else
@@ -76,8 +76,9 @@ int hoshen(int *red, int n, int *clase)
             }
         }
     }
-        
-    corregir_etiqueta(red,clase,n);             
+
+    corregir_etiqueta(red,clase,n);
+	reemplazar(red,clase,n);
     return 0;
 }
 
@@ -94,7 +95,7 @@ int actualizar(int *red, int *clase, int s, int frag)
         *red = s;
         return frag;
     }
-        
+
 }
 void etiqueta_falsa(int *red, int *clase, int s1, int s2)
 {
@@ -102,13 +103,13 @@ void etiqueta_falsa(int *red, int *clase, int s1, int s2)
     {
         s1 = -clase[s1];
     }
-        
+
     while (clase[s2]<0)
     {
         s2 = -clase[s2];
     }
-        
-    if (s1<s2) 
+
+    if (s1<s2)
     {
         clase[s2] = -s1;
         clase[s1] = s1;
@@ -124,9 +125,8 @@ void etiqueta_falsa(int *red, int *clase, int s1, int s2)
 }
 void corregir_etiqueta(int *red, int *clase, int n)
 {
-    int i,j, n2;
-    n2 = n * n;
-        
+    int i,j;
+
     i=2;
     while (clase[i] != 0)
     {
@@ -138,11 +138,6 @@ void corregir_etiqueta(int *red, int *clase, int n)
         clase[i] = clase[j];
         i++;
     }
-        
-    for (i=0; i<n2; i++)
-    {
-        *(red+i) = clase[*(red+i)];
-    }
 }
 
 int percola(int *red, int *percolantes, int n)
@@ -151,49 +146,57 @@ int percola(int *red, int *percolantes, int n)
 
     for (i=0;i<n;i++)
     {
-	if (*(red+i) > actual)
-	{
-	    s = *(red+i);
-	    j = 0;
-	    while (actual < s && j<n)
-	    {
-		if (*(red+(n*(n-1)+j)) == s)
+		if (*(red+i) > actual)
 		{
-		    *(percolantes + cantidad) = s;
-		    cantidad++;
-		    actual = s;
+			s = *(red+i);
+			j = 0;
+			while (actual < s && j<n)
+			{
+				if (*(red+(n*(n-1)+j)) == s)
+				{
+					*(percolantes + cantidad) = s;
+					cantidad++;
+					actual = s;
+				}
+				j++;
+			}
 		}
-		j++;
-	    }
-	}
     }
     return cantidad;
 }
 
 void hist(int *datos, int *resultado, int n)
 {
-    int i;
+    int i, s;
 
     for (i=0; i<n; i++)
     {
-	if (*(datos+i))
-	{
-	    *(resultado + *(datos+i)) += 1;
-	}
+		s = *(datos+i);
+		*(resultado + s)+=1;
+    }
+}
+
+void reemplazar(int *red, int *clase, int n)
+{
+	int i, n2=n*n;
+
+	for (i=0; i<n2; i++)
+    {
+        *(red+i) = clase[*(red+i)];
     }
 }
 
 void imprimir(int *red, int n)
 {
     int i,j,n2;
-        
+
     j=1;
     n2=n*n;
-        
+
     printf("\n");
-        
+
     for(i=0;i<n2;i++)
-    {           
+    {
         printf("%03d ", *(red+i));
         if (j==(i+1)/n)
         {
@@ -202,19 +205,19 @@ void imprimir(int *red, int n)
         }
     }
     printf("\n");
-        
+
 }
 
 float rnd(int *semilla)
 {
     int k;
     float x;
-        
+
     k=(*semilla)/Q;
     *semilla=A*(*semilla-k*Q)-R*k;
     if (*semilla<0) *semilla+=M;
-        
+
     x=(*semilla)*(1.0/M);
-        
+
     return x;
 }
