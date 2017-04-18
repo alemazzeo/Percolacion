@@ -8,6 +8,19 @@
 #define R    2836
 #define S    260572
 
+struct _res
+{
+    int n;
+    int semilla;
+    float proba;
+    int *cant_etiqueta;
+    int *cant_tamaño;
+    int cant_percolantes;
+    int *percolantes;
+};
+
+typedef struct _res Resultado;
+
 void llenar(int *red, int n, float proba, int *semilla)
 {
     int i;
@@ -15,7 +28,7 @@ void llenar(int *red, int n, float proba, int *semilla)
 
     for(i=0;i<n2;i++)
     {
-        if (proba<rnd(semilla)) *(red+i)=0; else *(red+i)=1;
+        if (proba<rnd(semilla)) *(red+i)=0; else *(red+i=1);
     }
 
 }
@@ -78,7 +91,7 @@ int hoshen(int *red, int n, int *clase)
     }
 
     corregir_etiqueta(red,clase,n);
-	reemplazar(red,clase,n);
+    reemplazar(red,clase,n);
     return 0;
 }
 
@@ -146,21 +159,21 @@ int percola(int *red, int *percolantes, int n)
 
     for (i=0;i<n;i++)
     {
-		if (*(red+i) > actual)
+	if (*(red+i) > actual)
+	{
+	    s = *(red+i);
+	    j = 0;
+	    while (actual < s && j<n)
+	    {
+		if (*(red+(n*(n-1)+j)) == s)
 		{
-			s = *(red+i);
-			j = 0;
-			while (actual < s && j<n)
-			{
-				if (*(red+(n*(n-1)+j)) == s)
-				{
-					*(percolantes + cantidad) = s;
-					cantidad++;
-					actual = s;
-				}
-				j++;
-			}
+		    *(percolantes + cantidad) = s;
+		    cantidad++;
+		    actual = s;
 		}
+		j++;
+	    }
+	}
     }
     return cantidad;
 }
@@ -171,16 +184,51 @@ void hist(int *datos, int *resultado, int n)
 
     for (i=0; i<n; i++)
     {
-		s = *(datos+i);
-		*(resultado + s)+=1;
+	s = *(datos+i);
+	*(resultado + s)+=1;
     }
+}
+
+void correr(int *red, int n, int *semillas, float *probas, 
+	    int *clase, int n_iter, int n_subiter, int *actual,
+	    Resultado *resultados)
+{
+    int i, j, k, n2=n*n;
+    Resultado *res;
+
+
+    for (i=0; i<n_iter; i++)
+    {
+	for (j=0; j<n_subiter; j++)
+	{
+	    k = i * n_iter + j;
+
+	    llenar(red, n, *(probas+k), *(semillas+k));
+	    hoshen(red, n, clase);
+
+	    res = (resultados+k);
+
+	    res.n = n;
+	    res.semilla = *(semillas+k);
+	    res.proba = *(proba+k);
+	    
+	    res.cant_percolates = percola(red, res.percolantes, n);
+	    
+	    hist(red, res.cant_etiqueta, n);
+	    hist(res.cant_etiqueta, res.cant_tamaño, n);
+	    
+	}
+
+	*actual = i;
+    }
+
 }
 
 void reemplazar(int *red, int *clase, int n)
 {
-	int i, n2=n*n;
+    int i, n2=n*n;
 
-	for (i=0; i<n2; i++)
+    for (i=0; i<n2; i++)
     {
         *(red+i) = clase[*(red+i)];
     }

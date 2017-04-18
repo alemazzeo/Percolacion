@@ -5,6 +5,9 @@ extern void     etiqueta_falsa(int *red, int *clase, int s1, int s2);
 extern void     corregir_etiqueta(int *red, int *clase, int n);
 extern int      percola(int *red, int *percolantes, int n);
 extern void     hist(int *datos, int *resultado, int n);
+extern void     correr(int *red, int n, int *semillas, float *probas,
+		       int *clase, int n_iter, int n_subiter, int *actual,
+		       Resultado *resultados); 
 extern void     reemplazar(int *red, int *clase, int n);
 extern void     imprimir(int *red, int n);
 extern float    rnd(int *semilla);

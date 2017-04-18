@@ -129,7 +129,7 @@ red2 = Percolacion(N, prob+0.5, semilla)
 tiempo_inicial = time.time()
 
 for i in range(27):
-    for j in range(10):
+    for j in range(1000):
         red.llenar(prob, i*1000+j)
         red2.llenar(prob, i*1000+j)
     print (str(i+1) + "000 / 27000", end="\r")
@@ -139,7 +139,7 @@ print ("Tiempo secuencial: " + str(time.time() - tiempo_inicial) + " segundos")
 tiempo_inicial = time.time()
 
 for i in range(27):
-    for j in range(10):
+    for j in range(1000):
         t1 = threading.Thread(target=red.llenar, args=(prob,i*1000+j))
         t2 = threading.Thread(target=red2.llenar, args=(prob,i*1000+j))
         t1.start()
