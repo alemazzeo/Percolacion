@@ -8,10 +8,10 @@ N = 64
 prob = 0.63
 semilla = 26572
 
-red = np.zeros(N, dtype=C.c_int)
-
 class Percolacion():
+
     def __init__(self, N, prob, semilla):
+
         self.N = N
         self.prob = prob
         self.semilla = C.c_int(semilla)
@@ -33,11 +33,13 @@ class Percolacion():
         self.analisis_etiquetas = False
 
     def _colormaps(self, cmap, indice=0, color=(0,0,0)):
+
         cmaplist = [cmap(i) for i in range(cmap.N)]
         cmaplist[indice] = color
         return cmap.from_list('Red', cmaplist, cmap.N)
 
     def llenar(self, prob, semilla):
+
         self.prob = prob
         self.semilla = C.c_int(semilla)
         self.red = np.zeros(self.N**2, dtype=C.c_int)
@@ -54,6 +56,7 @@ class Percolacion():
         self.analisis_etiquetas = False
 
     def id_percolantes(self):
+
         self.cant_percolantes = self.percolar.percola(self.red.ctypes.data_as(self.intp),
                                                       self.percolantes.ctypes.data_as(self.intp),
                                                       C.c_int(self.N))
@@ -62,8 +65,8 @@ class Percolacion():
 
         return self.cant_percolantes > 0
 
-
     def contar_etiquetas(self):
+
         self.percolar.hist(self.red.ctypes.data_as(self.intp),
                            self.cant_etiqueta.ctypes.data_as(self.intp),
                            C.c_int(self.N**2))
@@ -71,6 +74,7 @@ class Percolacion():
         self.analisis_percolacion = True
 
     def contar_tamaños(self):
+
         self.percolar.hist(self.cant_etiqueta.ctypes.data_as(self.intp),
                            self.cant_tamaño.ctypes.data_as(self.intp),
                            C.c_int(self.N**2))
@@ -110,8 +114,6 @@ class Percolacion():
         matriz = red_auxiliar.reshape(self.N, self.N)
         return plt.matshow(matriz, cmap=cmap)
 
-
-
     def ver_red(self):
 
         red_auxiliar = np.copy(self.red)
@@ -120,12 +122,34 @@ class Percolacion():
         matriz = red_auxiliar.reshape(self.N, self.N)
         return plt.matshow(matriz, cmap=cmap)
 
+
 red = Percolacion(N, prob, semilla)
+red2 = Percolacion(N, prob+0.5, semilla)
+
+tiempo_inicial = time.time()
 
 for i in range(27):
-    for j in range(1000):
-        red.llenar(prob, semilla+i)
+    for j in range(10):
+        red.llenar(prob, i*1000+j)
+        red2.llenar(prob, i*1000+j)
     print (str(i+1) + "000 / 27000", end="\r")
+
+print ("Tiempo secuencial: " + str(time.time() - tiempo_inicial) + " segundos")
+
+tiempo_inicial = time.time()
+
+for i in range(27):
+    for j in range(10):
+        t1 = threading.Thread(target=red.llenar, args=(prob,i*1000+j))
+        t2 = threading.Thread(target=red2.llenar, args=(prob,i*1000+j))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+    print (str(i+1) + "000 / 27000", end="\r")
+
+
+print ("Tiempo paralelo: " + str(time.time() - tiempo_inicial) + " segundos")
 
 red.contar_etiquetas()
 red.contar_tamaños()
