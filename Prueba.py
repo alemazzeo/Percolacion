@@ -1,6 +1,8 @@
 import ctypes as C
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+import threading
 
 N = 64
 prob = 0.63
@@ -8,7 +10,7 @@ semilla = 26572
 
 red = np.zeros(N, dtype=C.c_int)
 
-class Percolar():
+class Percolacion():
     def __init__(self, N, prob, semilla):
         self.N = N
         self.prob = prob
@@ -25,8 +27,15 @@ class Percolar():
         self.cant_tamaño = np.zeros(self.N**2, dtype=C.c_int)
         self.cant_etiqueta = np.zeros(self.N**2, dtype=C.c_int)
 
-        self.percolar.llenar(self.red.ctypes.data_as(self.intp), C.c_int(self.N),
-                             C.c_float(self.prob), C.byref(self.semilla))
+        self.analisis_cluster = False
+        self.analisis_percolacion = False
+        self.analisis_tamaños = False
+        self.analisis_etiquetas = False
+
+    def _colormaps(self, cmap, indice=0, color=(0,0,0)):
+        cmaplist = [cmap(i) for i in range(cmap.N)]
+        cmaplist[indice] = color
+        return cmap.from_list('Red', cmaplist, cmap.N)
 
     def llenar(self, prob, semilla):
         self.prob = prob
@@ -39,51 +48,97 @@ class Percolar():
         self.percolar.hoshen(self.red.ctypes.data_as(self.intp), C.c_int(self.N),
                              self.clase.ctypes.data_as(self.intp))
 
+        self.analisis_cluster = True
+        self.analisis_percolacion = False
+        self.analisis_tamaños = False
+        self.analisis_etiquetas = False
+
     def id_percolantes(self):
         self.cant_percolantes = self.percolar.percola(self.red.ctypes.data_as(self.intp),
                                                       self.percolantes.ctypes.data_as(self.intp),
                                                       C.c_int(self.N))
+
+        self.analisis_percolacion = True
+
         return self.cant_percolantes > 0
+
 
     def contar_etiquetas(self):
         self.percolar.hist(self.red.ctypes.data_as(self.intp),
                            self.cant_etiqueta.ctypes.data_as(self.intp),
                            C.c_int(self.N**2))
 
+        self.analisis_percolacion = True
+
     def contar_tamaños(self):
         self.percolar.hist(self.cant_etiqueta.ctypes.data_as(self.intp),
                            self.cant_tamaño.ctypes.data_as(self.intp),
                            C.c_int(self.N**2))
 
+        self.analisis_tamaños = True
+
     def ver_tamaños(self):
 
         red_auxiliar = np.copy(self.red)
+        cant_etiqueta = np.copy(self.cant_etiqueta)
+        cant_etiqueta[0] = - np.amax(cant_etiqueta) / 100
+        cmap = self._colormaps(plt.cm.rainbow)
 
         self.percolar.reemplazar(red_auxiliar.ctypes.data_as(self.intp),
-                                 self.cant_etiqueta.ctypes.data_as(self.intp),
+                                 cant_etiqueta.ctypes.data_as(self.intp),
                                  C.c_int(self.N))
 
         matriz = red_auxiliar.reshape(self.N, self.N)
-        return plt.matshow(matriz, cmap=plt.cm.hot_r)
+        return plt.matshow(matriz, cmap=cmap)
+
+    def ver_percolantes(self):
+
+        red_auxiliar = np.copy(self.red)
+        clase = np.zeros(self.N**2, dtype=C.c_int)
+        percolantes = np.trim_zeros(np.copy(self.percolantes))
+        for i in percolantes:
+            clase[i] = 10
+
+        clase[0] = -10
+
+        cmap = self._colormaps(plt.cm.rainbow)
+
+        self.percolar.reemplazar(red_auxiliar.ctypes.data_as(self.intp),
+                                 clase.ctypes.data_as(self.intp),
+                                 C.c_int(self.N))
+
+        matriz = red_auxiliar.reshape(self.N, self.N)
+        return plt.matshow(matriz, cmap=cmap)
+
 
 
     def ver_red(self):
-        matriz = self.red.reshape(self.N, self.N)
-        matriz[matriz < 2] = np.amax(matriz)
-        return plt.matshow(matriz, cmap=plt.cm.hot_r)
 
-mired = Percolar(N, prob, semilla)
+        red_auxiliar = np.copy(self.red)
+        cmap = self._colormaps(plt.cm.rainbow_r)
+
+        matriz = red_auxiliar.reshape(self.N, self.N)
+        return plt.matshow(matriz, cmap=cmap)
+
+red = Percolacion(N, prob, semilla)
 
 for i in range(27):
     for j in range(1000):
-        mired.llenar(prob, semilla+i)
-    print (i+1, "/ 27", end="\r")
+        red.llenar(prob, semilla+i)
+    print (str(i+1) + "000 / 27000", end="\r")
 
-mired.ver_red()
+red.contar_etiquetas()
+red.contar_tamaños()
+red.id_percolantes()
+
+red.ver_red()
 plt.show()
-mired.contar_etiquetas()
-mired.contar_tamaños()
-plt.plot(mired.cant_tamaño[0:100], "o")
+
+#plt.plot(mired.cant_tamaño[0:100], "o")
+#plt.show()
+
+red.ver_tamaños()
 plt.show()
-mired.ver_tamaños()
+
+red.ver_percolantes()
 plt.show()
