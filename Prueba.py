@@ -8,6 +8,9 @@ N = 64
 prob = 0.63
 semilla = 26572
 
+class
+
+
 class Percolacion():
 
     def __init__(self, N, prob, semilla):
@@ -72,7 +75,6 @@ class Percolacion():
                            C.c_int(self.N**2))
 
         self.analisis_percolacion = True
-
     def contar_tamaños(self):
 
         self.percolar.hist(self.cant_etiqueta.ctypes.data_as(self.intp),

@@ -8,19 +8,6 @@
 #define R    2836
 #define S    260572
 
-struct _res
-{
-    int n;
-    int semilla;
-    float proba;
-    int *cant_etiqueta;
-    int *cant_tamaño;
-    int cant_percolantes;
-    int *percolantes;
-};
-
-typedef struct _res Resultado;
-
 void llenar(int *red, int n, float proba, int *semilla)
 {
     int i;
@@ -28,17 +15,19 @@ void llenar(int *red, int n, float proba, int *semilla)
 
     for(i=0;i<n2;i++)
     {
-        if (proba<rnd(semilla)) *(red+i)=0; else *(red+i=1);
+        if (proba<rnd(semilla)) *(red+i)=0; else *(red+i)=1;
     }
 
 }
 
-int hoshen(int *red, int n, int *clase)
+int hoshen(int *red, int n)
 {
-    int i,j,k,n2,s1,s2,frag;
+    int i,j,k,n2,s1,s2,frag, *clase;
 
     n2=n*n;
     frag=0;
+
+    clase = (int *) malloc(n*n*sizeof(int));
 
     for (k=0;k<n2;k++) *(clase+k)=frag;
 
@@ -92,6 +81,7 @@ int hoshen(int *red, int n, int *clase)
 
     corregir_etiqueta(red,clase,n);
     reemplazar(red,clase,n);
+    free(clase);
     return 0;
 }
 
@@ -153,29 +143,41 @@ void corregir_etiqueta(int *red, int *clase, int n)
     }
 }
 
-int percola(int *red, int *percolantes, int n)
+int percola(int *red, int n)
 {
-    int i, j, s=0, actual=0, cantidad=0;
+    int i, j, s=0, actual=0, cantidad=0, mayor=0;
+    int *percolantes;
+
+    percolantes = (int *) malloc(n*sizeof(int));
 
     for (i=0;i<n;i++)
     {
-	if (*(red+i) > actual)
-	{
-	    s = *(red+i);
-	    j = 0;
-	    while (actual < s && j<n)
-	    {
-		if (*(red+(n*(n-1)+j)) == s)
-		{
-		    *(percolantes + cantidad) = s;
-		    cantidad++;
-		    actual = s;
-		}
-		j++;
-	    }
-	}
+        if (*(red+i) > actual)
+        {
+            s = *(red+i);
+            j = 0;
+            while (actual < s && j<n)
+            {
+                if (*(red+(n*(n-1)+j)) == s)
+                {
+                    *(percolantes + cantidad) = s;
+                    cantidad++;
+                    actual = s;
+                }
+                j++;
+            }
+        }
     }
-    return cantidad;
+
+    for (i=0; i<cantidad; i++)
+    {
+        if (*(percolantes+i) > mayor)
+            mayor = *(percolantes+i);
+    }
+
+    free(percolantes);
+
+    return mayor;
 }
 
 void hist(int *datos, int *resultado, int n)
@@ -184,43 +186,55 @@ void hist(int *datos, int *resultado, int n)
 
     for (i=0; i<n; i++)
     {
-	s = *(datos+i);
-	*(resultado + s)+=1;
+        s = *(datos+i);
+        *(resultado + s) +=1;
     }
 }
 
-void correr(int *red, int n, int *semillas, float *probas, 
-	    int *clase, int n_iter, int n_subiter, int *actual,
-	    Resultado *resultados)
+void correr(int n, int semilla_inicial, float proba,
+            int n_iter, int *iteraciones,
+            int *p_total, int *fp_total,
+            int *ns_total, int *nsp_total)
 {
-    int i, j, k, n2=n*n;
-    Resultado *res;
+    int i, j, n2=n*n, percolante, s;
+    int *red, *semilla, *n_etiqueta;
 
+    red = (int *) malloc(n*n*sizeof(int));
+    n_etiqueta = (int *) malloc(n*n*sizeof(int));
+
+    s = semilla_inicial;
+    semilla = &s;
 
     for (i=0; i<n_iter; i++)
     {
-	for (j=0; j<n_subiter; j++)
-	{
-	    k = i * n_iter + j;
+        s = semilla_inicial + (*iteraciones);
+        (*iteraciones)++;
+        llenar(red, n, proba, semilla);
+        hoshen(red, n);
 
-	    llenar(red, n, *(probas+k), *(semillas+k));
-	    hoshen(red, n, clase);
+        percolante = percola(red, n);
 
-	    res = (resultados+k);
 
-	    res.n = n;
-	    res.semilla = *(semillas+k);
-	    res.proba = *(proba+k);
-	    
-	    res.cant_percolates = percola(red, res.percolantes, n);
-	    
-	    hist(red, res.cant_etiqueta, n);
-	    hist(res.cant_etiqueta, res.cant_tamaño, n);
-	    
-	}
+		for (j=0; j<n2; j++)
+		{
+			*(n_etiqueta+j) = 0;
+		}
 
-	*actual = i;
+        hist(red, n_etiqueta, n2);
+
+        if (percolante > 0)
+        {
+            (*p_total)++;
+            (*fp_total) += (*(n_etiqueta+percolante)) / (n2 - (*n_etiqueta));
+            (*nsp_total) += *(n_etiqueta+percolante);
+        }
+
+        hist(n_etiqueta+2, ns_total, n2-2);
+
     }
+
+    free(red);
+    free(n_etiqueta);
 
 }
 
