@@ -86,8 +86,33 @@ class Percolacion():
 
             print ("Se añadieron " + str(subiter*n_threads) + " iteraciones.")
             print ("Cantidad de iteraciones acumuladas: " + str(self._N.value))
-            print ("Tiempo transcurrido: " + str(round(time.time() - tiempo_inicial,4)) + " seg\n")
+            print ("Tiempo transcurrido: " + 
+                   str(round(time.time() - tiempo_inicial,4)) + " seg\n")
 
+    def _colormaps(self, cmap, indice=0, color=(0,0,0)):
+
+        cmaplist = [cmap(i) for i in range(cmap.N)]
+        cmaplist[indice] = color
+        return cmap.from_list('Red', cmaplist, cmap.N)
+
+    def ver_red(self, L, prob, semilla=26572):
+
+        red = np.zeros(L**2, dtype=C.c_int)
+        s = C.c_int(semilla)
+
+        self._percolar.llenar(red.ctypes.data_as(self._intp), C.c_int(L),
+                              C.c_float(prob), 
+                              C.byref(s))
+
+        self._percolar.hoshen(red.ctypes.data_as(self._intp), 
+                              C.c_int(L))
+        
+        cmap = self._colormaps(plt.cm.rainbow)
+        matriz = red.reshape(L, L)
+        matriz[matriz<2] = -10
+        plt.matshow(matriz, cmap=cmap)
+        plt.show()
+            
     def _actualizar(self):
 
         self.N = self._N.value
@@ -107,17 +132,7 @@ class Percolacion():
 
         plt.show()
 
-#red = Percolacion(512, 0.593125)
-
-#pruebas = (1, 2, 4, 8, 16, 32)
-#for i in pruebas:
-#   red.iterar(N=27000, n_threads=i, info=True)
-
-#red.iterar(N=2000)
-#red.ver_resultados()
-
-
-def buscar_pc(L, precision, N=1000):
+def buscar_pc_minimo(L, precision, N=1000):
     prob = 0.5
     red_prueba = Percolacion(L, prob)
     denominador = 4
@@ -136,10 +151,41 @@ def buscar_pc(L, precision, N=1000):
         denominador = denominador * 2
 
     red_prueba.info()
+    red_prueba.ver_red(L, prob, 50)
     red_prueba.ver_resultados()
     return prob
 
-#buscar_pc(128, 1e-10, N=5000)
-red = Percolacion(512, 0.5522559179039672)
-red.iterar(27000, n_threads=1)
+def buscar_pc_medio(L, precision, N=1000):
+    prob = 0.5
+    red_prueba = Percolacion(L, prob)
+    denominador = 4
+
+    red_prueba.iterar(N=N, n_threads=8, info=False)
+
+    while (abs(red_prueba.p -0.5) > precision):
+        print ("p=" + str(red_prueba.p) + ", prob=" + str(prob))
+        if red_prueba.p <= 0.5:
+            prob += 1/denominador
+        else:
+            prob -= 1/denominador
+
+        red_prueba.resetear(prob=prob)
+        red_prueba.iterar(N=N, n_threads=8, info=False)
+        denominador = denominador * 2
+
+    red_prueba.info()
+    red_prueba.ver_red(L, prob, 50)
+    red_prueba.ver_resultados()
+    return prob
+
+buscar_pc_minimo(128, 1e-10, N=5000)
+buscar_pc_medio(128, 1e-10, N=5000)
+
+red = Percolacion(256, 0.5927)
+red.info()
+
+pruebas = (1, 2, 4, 8)
+for i in pruebas:
+   red.iterar(N=27000, n_threads=i, info=True)
+
 red.ver_resultados()
