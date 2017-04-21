@@ -139,4 +139,7 @@ def buscar_pc(L, precision, N=1000):
     red_prueba.ver_resultados()
     return prob
 
-buscar_pc(128, 1e-10, N=5000)
+#buscar_pc(128, 1e-10, N=5000)
+red = Percolacion(512, 0.5522559179039672)
+red.iterar(27000, n_threads=1)
+red.ver_resultados()
