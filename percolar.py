@@ -3,29 +3,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import threading
+import os
 
 class Percolacion():
 
-    def __init__(self, L, prob, semilla_inicial=26572):
+    def __init__(self, L, ruta="./datos/"):
 
         self._L = L
-        self._prob = prob
-        self._semilla_inicial = semilla_inicial
+        self._ruta = ruta
 
         self._percolar = C.CDLL('./libpercolar.so')
         self._intp = C.POINTER(C.c_int)
+
+        self._prob = 0
+        self._semilla_inicial = 1
 
         self._N = C.c_int(0)
         self._p_total = C.c_int(0)
         self._fp_total = C.c_int(0)
         self._ns_total = np.zeros(self._L**2, dtype=C.c_int)
-        self._nsp_total = np.zeros(self._L**2, dtype=C.c_int)
+        self._ns2_total = np.zeros(self._L**2, dtype=C.c_int)
 
-        self.N = 0
         self.p = 0
         self.fp = 0
         self.ns = np.zeros(self._L**2)
-        self.nsp = np.zeros(self._L**2)
+        self.ns2 = np.zeros(self._L**2)
 
     def info(self):
 
@@ -37,18 +39,10 @@ class Percolacion():
 
         self._percolar.correr(*args)
 
-    def resetear(self, prob=-1):
-
-        if prob > 0 and prob < 1:
-            self._prob = prob
-
-        self._N = C.c_int(0)
-        self._p_total = C.c_int(0)
-        self._fp_total = C.c_int(0)
-        self._ns_total = np.zeros(self._L**2, dtype=C.c_int)
-        self._nsp_total = np.zeros(self._L**2, dtype=C.c_int)
-
     def iterar(self, N=27000, n_threads=8, info=True):
+
+        if N<=0:
+            return
 
         subiter = N // n_threads
 
@@ -60,7 +54,7 @@ class Percolacion():
                 C.byref(self._p_total),
                 C.byref(self._fp_total),
                 self._ns_total.ctypes.data_as(self._intp),
-                self._nsp_total.ctypes.data_as(self._intp))
+                self._ns2_total.ctypes.data_as(self._intp))
 
         thread = list()
 
@@ -81,18 +75,20 @@ class Percolacion():
             t.join()
 
         self._actualizar()
+        self._guardar()
 
         if info==True:
 
             print ("Se añadieron " + str(subiter*n_threads) + " iteraciones.")
             print ("Cantidad de iteraciones acumuladas: " + str(self._N.value))
-            print ("Tiempo transcurrido: " + 
+            print ("Tiempo transcurrido: " +
                    str(round(time.time() - tiempo_inicial,4)) + " seg\n")
 
-    def _colormaps(self, cmap, indice=0, color=(0,0,0)):
+    def _colormaps(self, cmap):
 
         cmaplist = [cmap(i) for i in range(cmap.N)]
-        cmaplist[indice] = color
+        cmaplist[0] = (0,0,0)
+        cmaplist[-1] = (1,1,1)
         return cmap.from_list('Red', cmaplist, cmap.N)
 
     def ver_red(self, L, prob, semilla=26572):
@@ -101,23 +97,29 @@ class Percolacion():
         s = C.c_int(semilla)
 
         self._percolar.llenar(red.ctypes.data_as(self._intp), C.c_int(L),
-                              C.c_float(prob), 
+                              C.c_float(prob),
                               C.byref(s))
 
-        self._percolar.hoshen(red.ctypes.data_as(self._intp), 
+        self._percolar.hoshen(red.ctypes.data_as(self._intp),
                               C.c_int(L))
-        
+
+        percolante = self._percolar.percola(red.ctypes.data_as(self._intp),
+                                            C.c_int(L))
+
         cmap = self._colormaps(plt.cm.rainbow)
         matriz = red.reshape(L, L)
         matriz[matriz<2] = -10
+        matriz[matriz==percolante] = np.amax(matriz) * 2
+        print(percolante)
+
         plt.matshow(matriz, cmap=cmap)
         plt.show()
-            
+
     def _actualizar(self):
 
         self.N = self._N.value
         self.ns = self._ns_total / self.N
-        self.nsp = self._nsp_total / self.N
+        self.ns2 = self._ns2_total / self.N
 
         self.p = self._p_total.value / self.N
         self.fp = self._fp_total.value / self.N
@@ -132,32 +134,54 @@ class Percolacion():
 
         plt.show()
 
-def buscar_pc_minimo(L, precision, N=1000):
-    prob = 0.5
-    red_prueba = Percolacion(L, prob)
-    denominador = 4
-
-    red_prueba.iterar(N=N, n_threads=8, info=False)
-
-    while (1/denominador > precision):
-        print ("p=" + str(red_prueba.p) + ", prob=" + str(prob))
-        if red_prueba.p <= 0:
-            prob += 1/denominador
+    def _cargar(self, prob):
+        self._prob = prob
+        os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
+        archivo = self._ruta + "/" + str(self._L) + "/ " + str(self._prob) + ".npy"
+        if os.path.isfile(archivo):
+            datos = np.load(archivo)
+            self._N.value = datos[0][0]
+            self._p_total.value  = datos[0][1]
+            self._fp_total.value = datos[0][2]
+            np.copyto(self._ns_total, datos[1][0])
+            np.copyto(self._ns2_total, datos[1][1])
         else:
-            prob -= 1/denominador
+            self._N.value = 0
+            self._p_total.value  = 0
+            self._fp_total.value = 0
+            np.copyto(self._ns_total, np.zeros(self._L**2, dtype=int))
+            np.copyto(self._ns2_total, np.zeros(self._L**2, dtype=int))
 
-        red_prueba.resetear(prob=prob)
-        red_prueba.iterar(N=N, n_threads=8, info=False)
-        denominador = denominador * 2
+        self.p = 0
+        self.fp = 0
+        self.ns = np.zeros(self._L**2)
+        self.ns2 = np.zeros(self._L**2)
 
-    red_prueba.info()
-    red_prueba.ver_red(L, prob, 50)
-    red_prueba.ver_resultados()
-    return prob
+
+    def _guardar(self):
+        os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
+        archivo = self._ruta + "/" + str(self._L) + "/ " + str(self._prob) + ".npy"
+        datos = [[self._N.value,
+                 self._p_total.value,
+                 self._fp_total.value],
+                 self._ns_total,
+                 self._ns2_total]
+
+        np.save(archivo, datos)
+
+    def _set_prob(self, prob):
+        self._cargar(prob)
+
+    def _get_prob(self):
+        return self.prob
+
+    prob = property (_get_prob, _set_prob)
+
 
 def buscar_pc_medio(L, precision, N=1000):
     prob = 0.5
-    red_prueba = Percolacion(L, prob)
+    red_prueba = Percolacion(L)
+    red_prueba.prob = prob
     denominador = 4
 
     red_prueba.iterar(N=N, n_threads=8, info=False)
@@ -169,23 +193,19 @@ def buscar_pc_medio(L, precision, N=1000):
         else:
             prob -= 1/denominador
 
-        red_prueba.resetear(prob=prob)
+        red_prueba.prob = prob
         red_prueba.iterar(N=N, n_threads=8, info=False)
         denominador = denominador * 2
 
     red_prueba.info()
-    red_prueba.ver_red(L, prob, 50)
+    red_prueba.ver_red(L, prob, 500)
     red_prueba.ver_resultados()
     return prob
 
-buscar_pc_minimo(128, 1e-10, N=5000)
-buscar_pc_medio(128, 1e-10, N=5000)
+buscar_pc_medio(128, 1e-10, N=27000)
 
-red = Percolacion(256, 0.5927)
-red.info()
-
-pruebas = (1, 2, 4, 8)
-for i in pruebas:
-   red.iterar(N=27000, n_threads=i, info=True)
-
-red.ver_resultados()
+#red = Percolacion(256)
+#red.prob = 0.5927
+#red.info()
+#red.iterar(N=8000, n_threads=8, info=True)
+#red.ver_resultados()
