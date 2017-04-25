@@ -9,7 +9,7 @@ extern void     hist(int *datos, int *resultado, int n);
 extern void     correr(int n, int semilla_inicial, float proba,
 		       int n_iter, int *iteraciones,
 		       int *p_total, int *fp_total,
-		       int *ns_total, int *nsp_total);
+		       int *ns_total, int *ns2_total);
 extern void     reemplazar(int *red, int *clase, int n);
 extern void     imprimir(int *red, int n);
 extern float    rnd(int *semilla);

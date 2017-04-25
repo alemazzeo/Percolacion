@@ -46,15 +46,15 @@ class Percolacion():
 
         subiter = N // n_threads
 
-        args = (C.c_int(self._L),
-                C.c_int(self._semilla_inicial),
-                C.c_float(self._prob),
-                C.c_int(subiter),
-                C.byref(self._N),
-                C.byref(self._p_total),
-                C.byref(self._fp_total),
-                self._ns_total.ctypes.data_as(self._intp),
-                self._ns2_total.ctypes.data_as(self._intp))
+        iter_actual = self._N.value
+        datos = list()
+
+        for i in range(n_threads):
+            datos.append([C.c_int(0),
+                          C.c_int(0),
+                          C.c_int(0),
+                          np.zeros(self._L**2, dtype=C.c_int),
+                          np.zeros(self._L**2, dtype=C.c_int)])
 
         thread = list()
 
@@ -66,6 +66,17 @@ class Percolacion():
             tiempo_inicial = time.time()
 
         for i in range(n_threads):
+            semilla = self._semilla_inicial + iter_actual + n_threads * subiter
+            args = (C.c_int(self._L),
+                    C.c_int(semilla),
+                    C.c_float(self._prob),
+                    C.c_int(subiter),
+                    C.byref(datos[i][0]),
+                    C.byref(datos[i][1]),
+                    C.byref(datos[i][2]),
+                    datos[i][3].ctypes.data_as(self._intp),
+                    datos[i][4].ctypes.data_as(self._intp))
+
             thread.append(threading.Thread(target=self._correr, args=args))
 
         for t in thread:
@@ -73,6 +84,13 @@ class Percolacion():
 
         for t in thread:
             t.join()
+
+        for i in range(n_threads):
+            self._N.value = self._N.value + datos[i][0].value
+            self._p_total.value = self._p_total.value + datos[i][1].value
+            self._fp_total.value = self._fp_total.value + datos[i][2].value
+            self._ns_total = self._ns_total + datos[i][3]
+            self._ns2_total = self._ns2_total + datos[i][4]
 
         self._actualizar()
         self._guardar()
@@ -188,6 +206,8 @@ def buscar_pc_medio(L, precision, N=1000):
 
     while (abs(red_prueba.p -0.5) > precision):
         print ("p=" + str(red_prueba.p) + ", prob=" + str(prob))
+        print (red_prueba._N)
+        print (red_prueba._p_total)
         if red_prueba.p <= 0.5:
             prob += 1/denominador
         else:
@@ -204,8 +224,8 @@ def buscar_pc_medio(L, precision, N=1000):
 
 buscar_pc_medio(128, 1e-10, N=27000)
 
-#red = Percolacion(256)
+#red = Percolacion(32)
 #red.prob = 0.5927
 #red.info()
-#red.iterar(N=8000, n_threads=8, info=True)
+#red.iterar(N=27000, n_threads=8, info=True)
 #red.ver_resultados()

@@ -194,13 +194,14 @@ void hist(int *datos, int *resultado, int n)
 void correr(int n, int semilla_inicial, float proba,
             int n_iter, int *iteraciones,
             int *p_total, int *fp_total,
-            int *ns_total, int *nsp_total)
+            int *ns_total, int *ns2_total)
 {
     int i, j, n2=n*n, percolante, s;
-    int *red, *semilla, *n_etiqueta;
+    int *red, *semilla, *n_etiqueta, *ns;
 
     red = (int *) malloc(n*n*sizeof(int));
     n_etiqueta = (int *) malloc(n*n*sizeof(int));
+	ns = (int *) malloc(n*n*sizeof(int));
 
     s = semilla_inicial;
     semilla = &s;
@@ -218,6 +219,7 @@ void correr(int n, int semilla_inicial, float proba,
 		for (j=0; j<n2; j++)
 		{
 			*(n_etiqueta+j) = 0;
+			*(ns+j) = 0;
 		}
 
         hist(red, n_etiqueta, n2);
@@ -226,10 +228,15 @@ void correr(int n, int semilla_inicial, float proba,
         {
             (*p_total)++;
             (*fp_total) += (*(n_etiqueta+percolante)) / (n2 - (*n_etiqueta));
-            (*nsp_total) += *(n_etiqueta+percolante);
         }
 
-        hist(n_etiqueta+2, ns_total, n2-2);
+        hist(n_etiqueta+2, ns, n2-2);
+
+		for (j=0; j<n2; j++)
+		{
+			*(ns_total+j) += *(ns+j);
+			*(ns2_total+j) += (*(ns+j)) * (*(ns+j));
+		}
 
     }
 
