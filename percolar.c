@@ -191,10 +191,9 @@ void hist(int *datos, int *resultado, int n)
     }
 }
 
-void correr(int n, int semilla_inicial, float proba,
-            int n_iter, int *iteraciones,
-            int *p_total, int *fp_total,
-            int *ns_total, int *ns2_total)
+void iterar_prob_fija(int n, int semilla_inicial, float proba,
+					  int n_iter, int *p_total, int *fp_total,
+					  int *ns_total)
 {
     int i, j, n2=n*n, percolante, s;
     int *red, *semilla, *n_etiqueta, *ns;
@@ -208,8 +207,7 @@ void correr(int n, int semilla_inicial, float proba,
 
     for (i=0; i<n_iter; i++)
     {
-        s = semilla_inicial + (*iteraciones);
-        (*iteraciones)++;
+        s = semilla_inicial + i;
         llenar(red, n, proba, semilla);
         hoshen(red, n);
 
@@ -230,13 +228,7 @@ void correr(int n, int semilla_inicial, float proba,
             (*fp_total) += (*(n_etiqueta+percolante)) / (n2 - (*n_etiqueta));
         }
 
-        hist(n_etiqueta+2, ns, n2-2);
-
-		for (j=0; j<n2; j++)
-		{
-			*(ns_total+j) += *(ns+j);
-			*(ns2_total+j) += (*(ns+j)) * (*(ns+j));
-		}
+        hist(n_etiqueta+2, ns_total, n2-2);
 
     }
 
@@ -290,3 +282,89 @@ float rnd(int *semilla)
 
     return x;
 }
+/*
+float forzar_percolacion(int n, int semilla, float proba_inicial,
+						 int profundidad)
+{
+	int i, n2=n*n, denominador=2;
+	int *red, *s;
+	float proba;
+
+	proba = proba_inicial;
+
+	*s = semilla;
+
+	red = (int *) malloc (n*n*sizeof(int));
+
+	for (i=0; i<profundidad;i++)
+	{
+		llenar(red, n, proba, s);
+		hoshen(red, n);
+		if (percola(red,n))
+		{
+			proba -= 1/denominador;
+		}
+		else
+		{
+			proba += 1/denominador;
+		}
+		denominador = denominador * 2;
+	}
+
+	return proba;
+}
+
+
+float buscar_pc(int n, int semilla_inicial, int n_iter,
+				int *proba, int *proba2)
+{
+    int i, j, n2=n*n, percolante, s;
+    int *red, *semilla, *n_etiqueta, *ns;
+
+    red = (int *) malloc(n*n*sizeof(int));
+    n_etiqueta = (int *) malloc(n*n*sizeof(int));
+	ns = (int *) malloc(n*n*sizeof(int));
+
+    s = semilla_inicial;
+    semilla = &s;
+
+    for (i=0; i<n_iter; i++)
+    {
+        s = semilla_inicial + i);
+        (*iteraciones)++;
+        llenar(red, n, proba, semilla);
+        hoshen(red, n);
+
+        percolante = percola(red, n);
+
+
+		for (j=0; j<n2; j++)
+		{
+			*(n_etiqueta+j) = 0;
+			*(ns+j) = 0;
+		}
+
+        hist(red, n_etiqueta, n2);
+
+        if (percolante > 0)
+        {
+            (*p_total)++;
+            (*fp_total) += (*(n_etiqueta+percolante)) / (n2 - (*n_etiqueta));
+        }
+
+        hist(n_etiqueta+2, ns, n2-2);
+
+		for (j=0; j<n2; j++)
+		{
+			*(ns_total+j) += *(ns+j);
+			*(ns2_total+j) += (*(ns+j)) * (*(ns+j));
+		}
+
+    }
+
+    free(red);
+    free(n_etiqueta);
+
+}
+
+*/
