@@ -14,16 +14,23 @@ class Percolacion():
 
         self._percolar = C.CDLL('./libpercolar.so')
         self._intp = C.POINTER(C.c_int)
-
+        self._floatp = C.POINTER(C.c_float)
         self._prob = 0
         self._semilla_inicial = 1
 
-        self._N = C.c_int(0)
         self._p_total = C.c_int(0)
         self._fp_total = C.c_int(0)
         self._ns_total = np.zeros(self._L**2, dtype=C.c_int)
         self._ns2_total = np.zeros(self._L**2, dtype=C.c_int)
 
+        self.M = 0
+        self._profundidad = 8
+        self._pcs = np.array(0)
+        self._pcs2 = np.array(0)
+
+        self._cargar_pc()
+
+        self.N = 0
         self.p = 0
         self.fp = 0
         self.ns = np.zeros(self._L**2)
@@ -35,9 +42,53 @@ class Percolacion():
         print ('Semilla inicial: ' + str(self._semilla_inicial))
         print ('Probabilidad: ' + str(self._prob) + "\n")
 
-    def _iterar_prob_fija(self, *args):
+    def _iterar_buscar_pc(self, *args):
+        self._percolar.iterar_buscar_pc(*args)
 
+    def _iterar_prob_fija(self, *args):
         self._percolar.iterar_prob_fija(*args)
+
+    def iterar_buscar_pc(self, N=27000, n_threads=8, info=False):
+
+        if N<=0:
+            return
+
+        subiter = N // n_threads
+        iter_actual = self.M
+        datos = list()
+
+        for i in range(n_threads):
+            datos.append([np.zeros(subiter, dtype=C.c_float),
+                          np.zeros(subiter, dtype=C.c_float)])
+
+        thread = list()
+
+        if info==True:
+            pass
+
+        for i in range(n_threads):
+            semilla = self._semilla_inicial + iter_actual + i * subiter
+            args = (C.c_int(self._L),
+                    C.c_int(semilla),
+                    C.c_int(subiter),
+                    C.c_int(self._profundidad),
+                    datos[i][0].ctypes.data_as(self._floatp),
+                    datos[i][1].ctypes.data_as(self._floatp))
+
+            thread.append(threading.Thread(target=self._iterar_buscar_pc, args=args))
+
+        for t in thread:
+            t.start()
+
+        for t in thread:
+            t.join()
+
+        for i in range(n_threads):
+            self.M += subiter
+            self._pcs = np.append(self._pcs,datos[i][0])
+            self._pcs2 = np.append(self._pcs2, datos[i][1])
+
+        self._guardar_pc()
 
     def iterar_prob_fija(self, N=27000, n_threads=8, info=False):
 
@@ -45,7 +96,6 @@ class Percolacion():
             return
 
         subiter = N // n_threads
-
         iter_actual = self.N
         datos = list()
 
@@ -130,9 +180,13 @@ class Percolacion():
 
     def _actualizar(self):
 
-        self.ns = self._ns_total / self.N
-        self.p = self._p_total.value / self.N
-        self.fp = self._fp_total.value / self.N
+        if self.M > 0:
+            self.pc = self._pcs / self.M
+            self.pc2 = self._pcs2 / self.M
+        if self.N > 0:
+            self.ns = self._ns_total / self.N
+            self.p = self._p_total.value / self.N
+            self.fp = self._fp_total.value / self.N
 
     def ver_resultados(self, imprimir=True):
 
@@ -147,10 +201,39 @@ class Percolacion():
         plt.plot(s, ns, 'o')
         plt.show()
 
+    def _cargar_pc(self):
+        os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
+        archivo = self._ruta + "/" + str(self._L) + "/pc.npy"
+
+        if os.path.isfile(archivo):
+            datos = np.load(archivo)
+            self.M = datos[0][0]
+            self._pcs = datos[1]
+            self._pcs2 = datos[2]
+
+            print(self.M)
+            print(self._pcs)
+            print(self._pcs2)
+
+        else:
+            self.M = 0
+            self._pcs = np.array(0)
+            self._pcs2 = np.array(0)
+
+
+    def _guardar_pc(self):
+        os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
+        archivo = self._ruta + "/" + str(self._L) + "/pc.npy"
+        datos = [[self.M,],
+                 self._pcs,
+                 self._pcs2]
+        np.save(archivo, datos)
+
     def _cargar(self, prob):
         self._prob = prob
         os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
         archivo = self._ruta + "/" + str(self._L) + "/ " + str(self._prob) + ".npy"
+
         if os.path.isfile(archivo):
             datos = np.load(archivo)
             self.N = datos[0][0]
@@ -176,6 +259,7 @@ class Percolacion():
     def _guardar(self):
         os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
         archivo = self._ruta + "/" + str(self._L) + "/ " + str(self._prob) + ".npy"
+
         datos = [[self.N,
                  self._p_total.value,
                  self._fp_total.value],
@@ -193,9 +277,10 @@ class Percolacion():
     prob = property (_get_prob, _set_prob)
 
 
-red = Percolacion(16)
-red.prob = 0.5927
-red.info()
-for i in range(3):
-    red.iterar_prob_fija(N=9000, n_threads=8, info=True)
-    red.ver_resultados()
+#red = Percolacion(16)
+#red.prob = 0.5927
+#red.info()
+#red.iterar_prob_fija(N=8000, n_threads=8, info=True)
+#red.ver_resultados()
+
+#red.iterar_buscar_pc(N=27000)

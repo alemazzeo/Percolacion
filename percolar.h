@@ -8,8 +8,10 @@ extern void     hist(int *datos, int *resultado, int n);
 extern void     iterar_prob_fija(int n, int semilla_inicial, float proba,
 								 int n_iter, int *p_total, int *fp_total,
 								 int *ns_total);
-//extern void     iterar_buscar_pc(int n, int semilla_inicial, int n_iter,
-//								 int *proba, int *proba2)
+extern float    forzar_percolacion(int n, int semilla, float proba_inicial,
+								   int profundidad);
+extern void     iterar_buscar_pc(int n, int semilla_inicial, int n_iter,
+								 int profundidad, float *proba, float *proba2);
 extern void     reemplazar(int *red, int *clase, int n);
 extern void     imprimir(int *red, int n);
 extern float    rnd(int *semilla);
