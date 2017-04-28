@@ -8,7 +8,7 @@
 #define R    2836
 #define S    260572
 
-void llenar(int *red, int n, float proba, int *semilla)
+void llenar(int *red, int n, double proba, int *semilla)
 {
     int i;
     int n2=n*n;
@@ -191,11 +191,12 @@ void hist(int *datos, int *resultado, int n)
     }
 }
 
-void iterar_prob_fija(int n, int semilla_inicial, float proba,
-					  int n_iter, int *p_total, int *fp_total,
-					  int *ns_total)
+void iterar_prob_fija(int n, int semilla_inicial, double proba,
+					  int n_iter, int *p_total, double *fp_total,
+					  int *ns_total, double *fpp_total)
 {
     int i, j, n2=n*n, percolante, s;
+    double sp, s0;
     int *red, *semilla, *n_etiqueta;
 
     red = (int *) malloc(n*n*sizeof(int));
@@ -223,7 +224,10 @@ void iterar_prob_fija(int n, int semilla_inicial, float proba,
         if (percolante > 0)
         {
             (*p_total)++;
-            (*fp_total) += (*(n_etiqueta+percolante)) / (n2 - (*n_etiqueta));
+            sp = *(n_etiqueta+percolante);
+            s0 = *(n_etiqueta);
+            (*fp_total) += (sp / n2);
+            (*fpp_total) += (sp / (n2 - s0));
         }
 
         hist(n_etiqueta+2, ns_total, n2-2);
@@ -267,10 +271,10 @@ void imprimir(int *red, int n)
 
 }
 
-float rnd(int *semilla)
+double rnd(int *semilla)
 {
     int k;
-    float x;
+    double x;
 
     k=(*semilla)/Q;
     *semilla=A*(*semilla-k*Q)-R*k;
@@ -281,12 +285,12 @@ float rnd(int *semilla)
     return x;
 }
 
-float forzar_percolacion(int n, int semilla, float proba_inicial,
+double forzar_percolacion(int n, int semilla, double proba_inicial,
 						 int profundidad)
 {
 	int i, denominador=4;
 	int *red, s;
-	float proba;
+	double proba;
 
 	proba = proba_inicial;
 
@@ -313,10 +317,10 @@ float forzar_percolacion(int n, int semilla, float proba_inicial,
 
 
 void iterar_buscar_pc(int n, int semilla_inicial, int n_iter,
-					  int profundidad, float *proba, float *proba2)
+					  int profundidad, double *proba, double *proba2)
 {
     int i, s;
-	float pc;
+	double pc;
 
     s = semilla_inicial;
 
@@ -324,7 +328,7 @@ void iterar_buscar_pc(int n, int semilla_inicial, int n_iter,
     {
         s = semilla_inicial + i;
         pc = forzar_percolacion(n, s, 0.5, profundidad);
-		*(proba+i) = pc;
-		*(proba2+i) = pc * pc;
+	(*(proba)) += pc;
+	(*(proba2)) += pc * pc;
     }
 }
