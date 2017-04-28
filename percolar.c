@@ -192,10 +192,11 @@ void hist(int *datos, int *resultado, int n)
 }
 
 void iterar_prob_fija(int n, int semilla_inicial, double proba,
-					  int n_iter, int *p_total, int *fp_total,
-					  int *ns_total)
+					  int n_iter, int *p_total, double *fp_total,
+					  int *ns_total, double *fpp_total)
 {
     int i, j, n2=n*n, percolante, s;
+    double sp, s0;
     int *red, *semilla, *n_etiqueta;
 
     red = (int *) malloc(n*n*sizeof(int));
@@ -223,7 +224,10 @@ void iterar_prob_fija(int n, int semilla_inicial, double proba,
         if (percolante > 0)
         {
             (*p_total)++;
-            (*fp_total) += (*(n_etiqueta+percolante)) / (n2 - (*n_etiqueta));
+            sp = *(n_etiqueta+percolante);
+            s0 = *(n_etiqueta);
+            (*fp_total) += (sp / n2);
+            (*fpp_total) += (sp / (n2 - s0));
         }
 
         hist(n_etiqueta+2, ns_total, n2-2);

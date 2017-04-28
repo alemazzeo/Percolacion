@@ -19,14 +19,15 @@ class Percolacion():
         self._semilla_inicial = 1
 
         self._p_total = C.c_int(0)
-        self._fp_total = C.c_int(0)
+        self._fp_total = C.c_double(0.0)
+        self._fpp_total = C.c_double(0.0)
         self._ns_total = np.zeros(self._L**2, dtype=C.c_int)
         self._ns2_total = np.zeros(self._L**2, dtype=C.c_int)
 
         self._profundidad = 16
         self._pcs = 0.0
         self._pcs2 = 0.0
-        
+
         self.M = 0
         self.pc = 0
         self.pc2 = 0
@@ -35,16 +36,17 @@ class Percolacion():
 
         self.N = 0
         self.p = 0
-        self.fp = 0
+        self.fp = 0.0
+        self.fpp = 0.0
         self.ns = np.zeros(self._L**2)
         self.ns2 = np.zeros(self._L**2)
-    
-        self._cargar_pc()       
+
+        self._cargar_pc()
 
     def info_pc(self, *args):
         self._actualizar()
         print ('Tamaño de la red: ' + str(self._L))
-        print ('Pc: ' + str(self.pc) + " +/- " + str(self.sd)) 
+        print ('Pc: ' + str(self.pc) + " +/- " + str(self.sd))
         print ('Veces iterada: ' + str(self.M))
         for mensaje in args:
             print (mensaje)
@@ -107,7 +109,7 @@ class Percolacion():
 
         self._actualizar()
         self._guardar_pc()
-        
+
         if info==True:
 
             print ("Se añadieron " + str(subiter*n_threads) + " iteraciones.")
@@ -126,8 +128,9 @@ class Percolacion():
 
         for i in range(n_threads):
             datos.append([C.c_int(0),
-                          C.c_int(0),
-                          np.zeros(self._L**2, dtype=C.c_int)])
+                          C.c_double(0.0),
+                          np.zeros(self._L**2, dtype=C.c_int),
+                          C.c_double(0.0)])
 
         thread = list()
 
@@ -146,7 +149,8 @@ class Percolacion():
                     C.c_int(subiter),
                     C.byref(datos[i][0]),
                     C.byref(datos[i][1]),
-                    datos[i][2].ctypes.data_as(self._intp))
+                    datos[i][2].ctypes.data_as(self._intp),
+                    C.byref(datos[i][3]))
 
             thread.append(threading.Thread(target=self._iterar_prob_fija, args=args))
 
@@ -161,6 +165,7 @@ class Percolacion():
             self._p_total.value = self._p_total.value + datos[i][0].value
             self._fp_total.value = self._fp_total.value + datos[i][1].value
             self._ns_total = self._ns_total + datos[i][2]
+            self._fpp_total.value = self._fpp_total.value + datos[i][3].value
 
         self._actualizar()
         self._guardar()
@@ -214,6 +219,7 @@ class Percolacion():
             self.ns = self._ns_total / self.N
             self.p = self._p_total.value / self.N
             self.fp = self._fp_total.value / self.N
+            self.fpp = self._fpp_total.value / self.N
 
     def ver_resultados(self, imprimir=True):
 
@@ -263,18 +269,21 @@ class Percolacion():
             self.N = datos[0][0]
             self._p_total.value  = datos[0][1]
             self._fp_total.value = datos[0][2]
+            self._fpp_total.value = datos[0][3]
             np.copyto(self._ns_total, datos[1])
 
         else:
             self.N = 0
             self._p_total.value  = 0
-            self._fp_total.value = 0
+            self._fp_total.value = 0.0
+            self._fpp_total.value = 0.0
             np.copyto(self._ns_total, np.zeros(self._L**2, dtype=int))
 
-        self.p = 0
-        self.fp = 0
+        self.p = 0.0
+        self.fp = 0.0
+        self.fpp = 0.0
         self.ns = np.zeros(self._L**2)
-        
+
         self._actualizar()
 
     def _guardar(self):
@@ -283,7 +292,8 @@ class Percolacion():
 
         datos = [[self.N,
                  self._p_total.value,
-                 self._fp_total.value],
+                 self._fp_total.value,
+                 self._fpp_total.value],
                  self._ns_total]
 
         np.save(archivo, datos)

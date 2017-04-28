@@ -6,8 +6,8 @@ extern void     corregir_etiqueta(int *red, int *clase, int n);
 extern int      percola(int *red, int n);
 extern void     hist(int *datos, int *resultado, int n);
 extern void     iterar_prob_fija(int n, int semilla_inicial, double proba,
-								 int n_iter, int *p_total, int *fp_total,
-								 int *ns_total);
+								 int n_iter, int *p_total, double *fp_total,
+								 int *ns_total, double *fpp_total);
 extern double    forzar_percolacion(int n, int semilla, double proba_inicial,
 								   int profundidad);
 extern void     iterar_buscar_pc(int n, int semilla_inicial, int n_iter,
