@@ -16,11 +16,11 @@ from percolar import Percolacion as perc
 # promediando sobre diferentes realizaciones (semillas)
 
 # Número de realizaciones
-M = 1000
+M = 8000
 # Profundidad: veces que se divide el intervalo de busqueda
 prof = 16
 # Tamaños de las redes utilizadas
-Ls = np.array([4, 8, 16, 32, 64, 96, 128, 192, 256])
+Ls = np.array([4, 8, 16, 32, 64, 96, 128, 256, 512, 1024])
 # Arrays para valores de pc obtenidos y correspondientes desviaciones
 pc = np.zeros(len(Ls), dtype=float)
 sd = np.zeros(len(Ls), dtype=float)
@@ -77,14 +77,14 @@ ax2.legend(loc='upper right')
 # Calcula la probabilidad de aparición del cluster percolante F(p) dp
 
 # Número de realizaciones
-N = 800
+N = 200
 # prob inicial y final
 p1 = 0.5
 p2 = 1.0
 # Subdivisiones
 puntos = 100
 # Tamaños de las redes utilizadas
-Ls = np.array([4, 16, 32, 64, 128, 256])
+Ls = np.array([4, 16, 32, 64, 128, 256, 512, 1024])
 # Probabilidades estudiadas
 probs = np.linspace(p1, p2, puntos)
 # Veces que percola / realizaciones
@@ -140,7 +140,7 @@ N = 1000
 # Precisión (Distancia aceptada a p=0.5)
 precision = 1e-5
 # Tamaños de las redes utilizadas
-Ls = np.array([4, 8, 16, 32, 64, 128, 256])
+Ls = np.array([4, 8, 16, 32, 64, 128, 256, 512, 1024])
 # Lista de pc
 pc = list()
 # Lista de sd

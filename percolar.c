@@ -8,10 +8,10 @@
 #define R    2836
 #define S    260572
 
-void llenar(int *red, int n, double proba, int *semilla)
+void llenar(long *red, long n, double proba, long *semilla)
 {
-    int i;
-    int n2=n*n;
+    long i;
+    long n2=n*n;
 
     for(i=0;i<n2;i++)
     {
@@ -20,14 +20,14 @@ void llenar(int *red, int n, double proba, int *semilla)
 
 }
 
-int hoshen(int *red, int n)
+long hoshen(long *red, long n)
 {
-    int i,j,k,n2,s1,s2,frag, *clase;
+    long i,j,k,n2,s1,s2,frag, *clase;
 
     n2=n*n;
     frag=0;
 
-    clase = (int *) malloc(n*n*sizeof(int));
+    clase = (long *) malloc(n*n*sizeof(long));
 
     for (k=0;k<n2;k++) *(clase+k)=frag;
 
@@ -85,7 +85,7 @@ int hoshen(int *red, int n)
     return 0;
 }
 
-int actualizar(int *red, int *clase, int s, int frag)
+long actualizar(long *red, long *clase, long s, long frag)
 {
     if (s==0)
     {
@@ -100,7 +100,7 @@ int actualizar(int *red, int *clase, int s, int frag)
     }
 
 }
-void etiqueta_falsa(int *red, int *clase, int s1, int s2)
+void etiqueta_falsa(long *red, long *clase, long s1, long s2)
 {
     while (clase[s1]<0)
     {
@@ -126,9 +126,9 @@ void etiqueta_falsa(int *red, int *clase, int s1, int s2)
     }
 
 }
-void corregir_etiqueta(int *red, int *clase, int n)
+void corregir_etiqueta(long *red, long *clase, long n)
 {
-    int i,j;
+    long i,j;
 
     i=2;
     while (clase[i] != 0)
@@ -143,9 +143,9 @@ void corregir_etiqueta(int *red, int *clase, int n)
     }
 }
 
-int percola(int *red, int n)
+long percola(long *red, long n)
 {
-    int i, j, s=0;
+    long i, j, s=0;
 
     for (i=0;i<n;i++)
     {
@@ -165,9 +165,9 @@ int percola(int *red, int n)
     return 0;
 }
 
-int id_percolantes(int *red, int n, int *percolantes)
+long id_percolantes(long *red, long n, long *percolantes)
 {
-    int i, j, s=0, cantidad=0;
+    long i, j, s=0, cantidad=0;
 
     for (i=0; i<n; i++)
     {
@@ -190,9 +190,9 @@ int id_percolantes(int *red, int n, int *percolantes)
     return cantidad;
 }
 
-void hist(int *datos, int *resultado, int n)
+void hist(long *datos, long *resultado, long n)
 {
-    int i, s;
+    long i, s;
 
     for (i=0; i<n; i++)
     {
@@ -201,28 +201,28 @@ void hist(int *datos, int *resultado, int n)
     }
 }
 
-void iterar_prob_fija(int n,
-					  int semilla_inicial,
+void iterar_prob_fija(long n,
+					  long semilla_inicial,
 					  double proba,
-                      int n_iter,
-					  int *p_total,
+                      long n_iter,
+					  long *p_total,
                       double *spt_total,
                       double *spm_total,
                       double *spmax_total,
                       double *snp_total,
                       double *s0_total,
-                      int *np_total,
+                      long *np_total,
 					  double *fppt_total,
 					  double *fppmax_total,
-                      int *ns_total)
+                      long *ns_total)
 {
-    int i, j, n2=n*n, s, cantidad;
+    long i, j, n2=n*n, s, cantidad;
     double sp, s0, spt, spmax;
-    int *red, *semilla, *n_etiqueta, *percolantes;
+    long *red, *semilla, *n_etiqueta, *percolantes;
 
-    red = (int *) malloc(n*n*sizeof(int));
-    n_etiqueta = (int *) malloc(n*n*sizeof(int));
-    percolantes = (int *) malloc(n*sizeof(int));
+    red = (long *) malloc(n*n*sizeof(long));
+    n_etiqueta = (long *) malloc(n*n*sizeof(long));
+    percolantes = (long *) malloc(n*sizeof(long));
 
     s = semilla_inicial;
     semilla = &s;
@@ -278,9 +278,9 @@ void iterar_prob_fija(int n,
 
 }
 
-void reemplazar(int *red, int *clase, int n)
+void reemplazar(long *red, long *clase, long n)
 {
-    int i, n2=n*n;
+    long i, n2=n*n;
 
     for (i=0; i<n2; i++)
     {
@@ -288,9 +288,9 @@ void reemplazar(int *red, int *clase, int n)
     }
 }
 
-void imprimir(int *red, int n)
+void imprimir(long *red, long n)
 {
-    int i,j,n2;
+    long i,j,n2;
 
     j=1;
     n2=n*n;
@@ -299,7 +299,7 @@ void imprimir(int *red, int n)
 
     for(i=0;i<n2;i++)
     {
-        printf("%03d ", *(red+i));
+        printf("%li03 ", *(red+i));
         if (j==(i+1)/n)
         {
             printf("\n");
@@ -310,9 +310,9 @@ void imprimir(int *red, int n)
 
 }
 
-double rnd(int *semilla)
+double rnd(long *semilla)
 {
-    int k;
+    long k;
     double x;
 
     k=(*semilla)/Q;
@@ -324,16 +324,16 @@ double rnd(int *semilla)
     return x;
 }
 
-double forzar_percolacion(int n, int semilla, double proba_inicial,
-						  int profundidad)
+double forzar_percolacion(long n, long semilla, double proba_inicial,
+						  long profundidad)
 {
-	int i, denominador=4;
-	int *red, s;
+	long i, denominador=4;
+	long *red, s;
 	double proba;
 
 	proba = proba_inicial;
 
-	red = (int *) malloc (n*n*sizeof(int));
+	red = (long *) malloc (n*n*sizeof(long));
 
 	for (i=0; i<profundidad;i++)
 	{
@@ -355,10 +355,10 @@ double forzar_percolacion(int n, int semilla, double proba_inicial,
 }
 
 
-void iterar_buscar_pc(int n, int semilla_inicial, int n_iter,
-					  int profundidad, double *proba, double *proba2)
+void iterar_buscar_pc(long n, long semilla_inicial, long n_iter,
+					  long profundidad, double *proba, double *proba2)
 {
-    int i, s;
+    long i, s;
 	double pc;
 
     s = semilla_inicial;

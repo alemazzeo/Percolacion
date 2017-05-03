@@ -17,7 +17,7 @@ class Percolacion():
         self._percolar = C.CDLL('./libpercolar.so')
 
         # Punteros usuales
-        self._intp = C.POINTER(C.c_int)
+        self._longp = C.POINTER(C.c_long)
         self._doublep = C.POINTER(C.c_double)
 
         # Parámetros internos de la red
@@ -31,16 +31,16 @@ class Percolacion():
         self.M = 0
 
         # Valores acumulados por la función iterar_prob_fija
-        self._p_total = C.c_int(0)
+        self._p_total = C.c_long(0)
         self._spt_total = C.c_double(0.0)
         self._spm_total = C.c_double(0.0)
         self._spmax_total = C.c_double(0.0)
         self._snp_total = C.c_double(0.0)
         self._s0_total = C.c_double(0.0)
-        self._np_total = C.c_int(0)
+        self._np_total = C.c_long(0)
         self._fppt_total = C.c_double(0.0)
         self._fppmax_total = C.c_double(0.0)
-        self._ns_total = np.zeros(self._L**2, dtype=C.c_int)
+        self._ns_total = np.zeros(self._L**2, dtype=C.c_long)
 
         # Valores acumulador por la función iterar_buscar_pc
         self._pcs = 0.0
@@ -164,10 +164,10 @@ class Percolacion():
         # Prepara los hilos con los argumentos correspondientes
         for i in range(n_threads):
             semilla = self._semilla_inicial + iter_actual + i * subiter
-            args = (C.c_int(self._L),
-                    C.c_int(int(semilla)),
-                    C.c_int(subiter),
-                    C.c_int(self._profundidad),
+            args = (C.c_long(self._L),
+                    C.c_long(int(semilla)),
+                    C.c_long(subiter),
+                    C.c_long(self._profundidad),
                     C.byref(datos[i][0]),
                     C.byref(datos[i][1]))
 
@@ -207,16 +207,16 @@ class Percolacion():
         datos = list()
 
         for i in range(n_threads):
-            datos.append([C.c_int(0),
+            datos.append([C.c_long(0),
                           C.c_double(0.0),
                           C.c_double(0.0),
                           C.c_double(0.0),
                           C.c_double(0.0),
                           C.c_double(0.0),
-                          C.c_int(0),
+                          C.c_long(0),
                           C.c_double(0.0),
                           C.c_double(0.0),
-                          np.zeros(self._L**2, dtype=C.c_int)])
+                          np.zeros(self._L**2, dtype=C.c_long)])
 
         thread = list()
 
@@ -230,10 +230,10 @@ class Percolacion():
 
         for i in range(n_threads):
             semilla = self._semilla_inicial + iter_actual + i * subiter
-            args = (C.c_int(self._L),
-                    C.c_int(semilla),
+            args = (C.c_long(self._L),
+                    C.c_long(semilla),
                     C.c_double(self.__prob),
-                    C.c_int(subiter),
+                    C.c_long(subiter),
                     C.byref(datos[i][0]),
                     C.byref(datos[i][1]),
                     C.byref(datos[i][2]),
@@ -243,7 +243,7 @@ class Percolacion():
                     C.byref(datos[i][6]),
                     C.byref(datos[i][7]),
                     C.byref(datos[i][8]),
-                    datos[i][9].ctypes.data_as(self._intp))
+                    datos[i][9].ctypes.data_as(self._longp))
 
             thread.append(threading.Thread(target=self._iterar_prob_fija,
                                            args=args))
@@ -329,7 +329,7 @@ class Percolacion():
             self._np_total.value = 0
             self._fppt_total.value = 0.0
             self._fppmax_total.value = 0.0
-            np.copyto(self._ns_total, np.zeros(self._L**2, dtype=int))
+            np.copyto(self._ns_total, np.zeros(self._L**2, dtype=C.c_long))
 
     def _guardar(self):
         os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
@@ -358,18 +358,18 @@ class Percolacion():
 #
 #    def ver_red(self, L, prob, semilla=26572):
 #
-#        red = np.zeros(L**2, dtype=C.c_int)
-#        s = C.c_int(semilla)
+#        red = np.zeros(L**2, dtype=C.c_long)
+#        s = C.c_long(semilla)
 #
-#        self._percolar.llenar(red.ctypes.data_as(self._intp), C.c_int(L),
+#        self._percolar.llenar(red.ctypes.data_as(self._intp), C.c_long(L),
 #                              C.c_double(prob),
 #                              C.byref(s))
 #
 #        self._percolar.hoshen(red.ctypes.data_as(self._intp),
-#                              C.c_int(L))
+#                              C.c_long(L))
 #
 #        percolante = self._percolar.percola(red.ctypes.data_as(self._intp),
-#                                            C.c_int(L))
+#                                            C.c_long(L))
 #
 #        cmap = self._colormaps(plt.cm.rainbow)
 #        matriz = red.reshape(L, L)
