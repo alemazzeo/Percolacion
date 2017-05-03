@@ -16,11 +16,11 @@ from percolar import Percolacion as perc
 # promediando sobre diferentes realizaciones (semillas)
 
 # Número de realizaciones
-M = 54000
+M = 1000
 # Profundidad: veces que se divide el intervalo de busqueda
 prof = 16
 # Tamaños de las redes utilizadas
-Ls = np.array([4, 8, 16, 32, 64, 96, 128, 192, 256, 512])
+Ls = np.array([4, 8, 16, 32, 64, 96, 128, 192, 256])
 # Arrays para valores de pc obtenidos y correspondientes desviaciones
 pc = np.zeros(len(Ls), dtype=float)
 sd = np.zeros(len(Ls), dtype=float)
@@ -71,20 +71,20 @@ ax2 = fig.add_subplot(111, **kargs)
 ax2.plot(Ls, sd, '--s', label='Dispersión $\sigma$')
 ax2.legend(loc='upper right')
 
-plt.show()
+#plt.show()
 
 #%% Punto b)
 # Calcula la probabilidad de aparición del cluster percolante F(p) dp
 
 # Número de realizaciones
-N = 3200
+N = 800
 # prob inicial y final
 p1 = 0.5
 p2 = 1.0
 # Subdivisiones
-puntos = 200
+puntos = 100
 # Tamaños de las redes utilizadas
-Ls = np.array([4, 16, 32, 64, 128, 256, 512])
+Ls = np.array([4, 16, 32, 64, 128, 256])
 # Probabilidades estudiadas
 probs = np.linspace(p1, p2, puntos)
 # Veces que percola / realizaciones
@@ -110,8 +110,8 @@ for i, red in enumerate(redes2):
             restantes = int(N - red.N)
             red.iterar_prob_fija(N=restantes, n_threads=8)
         ps[i][j] = red.p
-        fps[i][j] = red.fp
-        fpps[i][j] = red.fpp
+        fps[i][j] = red.spt
+        fpps[i][j] = red.fppt
 
     kargs = {'xlabel': '$p$ (prob. nodo ocupado)',
              'ylabel': 'Probabilidad',
@@ -128,7 +128,7 @@ for i, red in enumerate(redes2):
     ax.axhline(0.5)
     ax.legend(loc='lower right')
 
-plt.show()
+#plt.show()
 
 
 #%% Detalle del punto b)
@@ -136,11 +136,11 @@ plt.show()
 # que percola sea 0.5 +/- precisión (previamente elegida)
 
 # Número de realizaciones
-N = 27000
+N = 1000
 # Precisión (Distancia aceptada a p=0.5)
 precision = 1e-5
 # Tamaños de las redes utilizadas
-Ls = np.array([4, 8, 16, 32, 64, 128, 256, 512])
+Ls = np.array([4, 8, 16, 32, 64, 128, 256])
 # Lista de pc
 pc = list()
 # Lista de sd

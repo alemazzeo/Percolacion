@@ -145,39 +145,49 @@ void corregir_etiqueta(int *red, int *clase, int n)
 
 int percola(int *red, int n)
 {
-    int i, j, s=0, actual=0, cantidad=0, mayor=0;
-    int *percolantes;
-
-    percolantes = (int *) malloc(n*sizeof(int));
+    int i, j, s=0;
 
     for (i=0;i<n;i++)
     {
-        if (*(red+i) > actual)
+        if (*(red+i) > s)
+        {
+			s = *(red+i);
+            j = 0;
+			for (j=0;j<n;j++)
+			{
+				if (*(red+(n*(n-1)+j)) == s)
+				{
+					return 1;
+				}
+			}
+        }
+    }
+    return 0;
+}
+
+int id_percolantes(int *red, int n, int *percolantes)
+{
+    int i, j, s=0, cantidad=0;
+
+    for (i=0; i<n; i++)
+    {
+        if (*(red+i) > s)
         {
             s = *(red+i);
             j = 0;
-            while (actual < s && j<n)
+            for (j=0; j<n; j++)
             {
                 if (*(red+(n*(n-1)+j)) == s)
                 {
                     *(percolantes + cantidad) = s;
                     cantidad++;
-                    actual = s;
+					break;
                 }
-                j++;
             }
         }
     }
 
-    for (i=0; i<cantidad; i++)
-    {
-        if (*(percolantes+i) > mayor)
-            mayor = *(percolantes+i);
-    }
-
-    free(percolantes);
-
-    return mayor;
+    return cantidad;
 }
 
 void hist(int *datos, int *resultado, int n)
@@ -191,16 +201,28 @@ void hist(int *datos, int *resultado, int n)
     }
 }
 
-void iterar_prob_fija(int n, int semilla_inicial, double proba,
-					  int n_iter, int *p_total, double *fp_total,
-					  int *ns_total, double *fpp_total)
+void iterar_prob_fija(int n,
+					  int semilla_inicial,
+					  double proba,
+                      int n_iter,
+					  int *p_total,
+                      double *spt_total,
+                      double *spm_total,
+                      double *spmax_total,
+                      double *snp_total,
+                      double *s0_total,
+                      int *np_total,
+					  double *fppt_total,
+					  double *fppmax_total,
+                      int *ns_total)
 {
-    int i, j, n2=n*n, percolante, s;
-    double sp, s0;
-    int *red, *semilla, *n_etiqueta;
+    int i, j, n2=n*n, s, cantidad;
+    double sp, s0, spt, spmax;
+    int *red, *semilla, *n_etiqueta, *percolantes;
 
     red = (int *) malloc(n*n*sizeof(int));
     n_etiqueta = (int *) malloc(n*n*sizeof(int));
+    percolantes = (int *) malloc(n*sizeof(int));
 
     s = semilla_inicial;
     semilla = &s;
@@ -211,23 +233,39 @@ void iterar_prob_fija(int n, int semilla_inicial, double proba,
         llenar(red, n, proba, semilla);
         hoshen(red, n);
 
-        percolante = percola(red, n);
+        cantidad = id_percolantes(red, n, percolantes);
 
 
-		for (j=0; j<n2; j++)
-		{
-			*(n_etiqueta+j) = 0;
-		}
+        for (j=0; j<n2; j++)
+        {
+            *(n_etiqueta+j) = 0;
+        }
 
         hist(red, n_etiqueta, n2);
 
-        if (percolante > 0)
+        if (cantidad > 0)
         {
             (*p_total)++;
-            sp = *(n_etiqueta+percolante);
             s0 = *(n_etiqueta);
-            (*fp_total) += (sp / n2);
-            (*fpp_total) += (sp / (n2 - s0));
+            spt = 0;
+            spmax = 0;
+            for (j=0; j<cantidad; j++)
+            {
+                sp = *(n_etiqueta + (*(percolantes+j)));
+                spt += sp;
+                if (spmax < sp) spmax = sp;
+            }
+
+            (*spt_total) += spt / n2;
+            (*spm_total) += (spt / cantidad) / n2;
+            (*spmax_total) += spmax / n2;
+            (*snp_total) += (n2 - spt - s0) / n2;
+            (*s0_total) += s0 / n2;
+            (*np_total) += cantidad;
+
+            (*fppt_total) += spt / (n2 - s0);
+            (*fppmax_total) += spmax / (n2 - s0);
+
         }
 
         hist(n_etiqueta+2, ns_total, n2-2);
@@ -236,6 +274,7 @@ void iterar_prob_fija(int n, int semilla_inicial, double proba,
 
     free(red);
     free(n_etiqueta);
+    free(percolantes);
 
 }
 
@@ -286,7 +325,7 @@ double rnd(int *semilla)
 }
 
 double forzar_percolacion(int n, int semilla, double proba_inicial,
-						 int profundidad)
+						  int profundidad)
 {
 	int i, denominador=4;
 	int *red, s;
@@ -328,7 +367,7 @@ void iterar_buscar_pc(int n, int semilla_inicial, int n_iter,
     {
         s = semilla_inicial + i;
         pc = forzar_percolacion(n, s, 0.5, profundidad);
-	(*(proba)) += pc;
-	(*(proba2)) += pc * pc;
+        (*(proba)) += pc;
+        (*(proba2)) += pc * pc;
     }
 }
