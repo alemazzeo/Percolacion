@@ -1,42 +1,40 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from percolar import Percolacion as perc
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-info', action='store_true', default=False)
+parser.add_argument('-lmin', type=int, default=4)
+parser.add_argument('-lmax', type=int, default=10)
+params = parser.parse_args()
 
 # Punto a)
 # Determinar pc buscando la probabilidad que hace percolar la red y
 # promediando sobre diferentes realizaciones (semillas)
 
-# Número de realizaciones
-M = 2000
-# Profundidad: veces que se divide el intervalo de busqueda
-prof = 16
+# Red mas pequeña y mas grande en potencias de 2
+lmin = params.lmin
+lmax = params.lmax
+# Origen de los datos
+ruta_datos = './datos'
 # Tamaños de las redes utilizadas
-Ls = np.array([4, 8, 16, 32, 64, 96, 128, 256, 512, 1024])
+Ls = 2**np.arange(lmin, lmax+1)
 # Arrays para valores de pc obtenidos y correspondientes desviaciones
 pc = np.zeros(len(Ls), dtype=float)
 sd = np.zeros(len(Ls), dtype=float)
 # Lista de redes
 redes = list()
-for L in Ls:
-    # Crea la instancia de la red para el tamaño correspondiente de la lista.
-    # Al hacer esto se recuperan los resultados guardados.
-    redes.append(perc(L))
+for i, L in enumerate(Ls):
+    # Crea la instancia de la red para el tamaño correspondiente de la lista
+    # Al hacer esto se recuperan los resultados guardados
+    redes.append(perc(L), ruta=ruta_datos)
 
 for i, red in enumerate(redes):
-    # Verifica si el estado actual de la red cumple el número de iteraciones.
-    # Tiene en cuenta las iteraciones recuperadas.
-    if red.M < M:
-        restantes = int(M - red.M)
-        # Itera hasta alcanzar el objetivo (iteraciones restantes)
-        # utilizando múltiples hilos (n_threads).
-        red.iterar_buscar_pc(N=restantes, n_threads=8)
-        red.info_pc('Se añadieron ' + str(restantes) +
-                       ' nuevas iteraciones a la red.')
-    else:
-        # Si se tienen mas iter. que las requeridas sólo informa resultados.
+    # Muestra informacion de las redes si fue pedida
+    if params.info:
         red.info_pc()
-
-    # Carga los datos para el gráfico pc(L) con barras de error.
+    # Carga los datos para el gráfico pc(L) con barras de error
     pc[i] = red.pc
     sd[i] = red.sd
 

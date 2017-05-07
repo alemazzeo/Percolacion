@@ -278,7 +278,7 @@ class Percolacion():
 
     def _cargar_pc(self):
         os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
-        archivo = self._ruta + "/" + str(self._L) + "/pc.npy"
+        archivo = self._ruta + "/pc" + str(self._L) + ".npy"
 
         if os.path.isfile(archivo):
             datos = np.load(archivo)
@@ -293,7 +293,7 @@ class Percolacion():
 
     def _guardar_pc(self):
         os.makedirs(self._ruta + "/" + str(self._L), exist_ok=True)
-        archivo = self._ruta + "/" + str(self._L) + "/pc.npy"
+        archivo = self._ruta + "/pc" + str(self._L) + ".npy"
         datos = [self.M,
                  self._pcs,
                  self._pcs2]

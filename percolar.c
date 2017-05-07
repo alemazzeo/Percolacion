@@ -235,7 +235,6 @@ void iterar_prob_fija(long n,
 
         cantidad = id_percolantes(red, n, percolantes);
 
-
         for (j=0; j<n2; j++)
         {
             *(n_etiqueta+j) = 0;
@@ -243,30 +242,30 @@ void iterar_prob_fija(long n,
 
         hist(red, n_etiqueta, n2);
 
+		s0 = *(n_etiqueta);
+		spt = 0;
+		spmax = 0;
+
+		for (j=0; j<cantidad; j++)
+		{
+			sp = *(n_etiqueta + (*(percolantes+j)));
+			spt += sp;
+			if (spmax < sp) spmax = sp;
+		}
+
         if (cantidad > 0)
         {
             (*p_total)++;
-            s0 = *(n_etiqueta);
-            spt = 0;
-            spmax = 0;
-            for (j=0; j<cantidad; j++)
-            {
-                sp = *(n_etiqueta + (*(percolantes+j)));
-                spt += sp;
-                if (spmax < sp) spmax = sp;
-            }
+			(*spt_total) += spt / n2;
+			(*spm_total) += (spt / cantidad) / n2;
+			(*spmax_total) += spmax / n2;
+			(*fppt_total) += spt / (n2 - s0);
+			(*fppmax_total) += spmax / (n2 - s0);
+		}
 
-            (*spt_total) += spt / n2;
-            (*spm_total) += (spt / cantidad) / n2;
-            (*spmax_total) += spmax / n2;
-            (*snp_total) += (n2 - spt - s0) / n2;
-            (*s0_total) += s0 / n2;
-            (*np_total) += cantidad;
-
-            (*fppt_total) += spt / (n2 - s0);
-            (*fppmax_total) += spmax / (n2 - s0);
-
-        }
+		(*snp_total) += (n2 - spt - s0) / n2;
+		(*s0_total) += s0 / n2;
+		(*np_total) += cantidad;
 
         hist(n_etiqueta+2, ns_total, n2-2);
 
