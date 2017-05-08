@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from percolar import Percolacion as perc
 import argparse
@@ -7,12 +9,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-info', action='store_true', default=False)
 parser.add_argument('-lmin', type=int, default=4)
 parser.add_argument('-lmax', type=int, default=10)
+parser.add_argument('-fig', type=int, action='append')
 params = parser.parse_args()
 
-# Punto a)
-# Determinar pc buscando la probabilidad que hace percolar la red y
-# promediando sobre diferentes realizaciones (semillas)
-
+# Figuras a mostrar
+if params.fig is None:
+    figuras = list([True,True,True])
+else:
+    figuras = list([False,False,False])
+    for figs in params.fig:
+        figuras[figs-1] = True
 # Red mas pequeña y mas grande en potencias de 2
 lmin = params.lmin
 lmax = params.lmax
@@ -28,7 +34,7 @@ redes = list()
 for i, L in enumerate(Ls):
     # Crea la instancia de la red para el tamaño correspondiente de la lista
     # Al hacer esto se recuperan los resultados guardados
-    redes.append(perc(L), ruta=ruta_datos)
+    redes.append(perc(L, ruta=ruta_datos))
 
 for i, red in enumerate(redes):
     # Muestra informacion de las redes si fue pedida
@@ -38,26 +44,47 @@ for i, red in enumerate(redes):
     pc[i] = red.pc
     sd[i] = red.sd
 
-fig = plt.figure()
-kargs = {'xlabel': '$L$',
-         'ylabel': '$p_c$',
-         'xscale': 'linear',
-         'yscale': 'linear',
-         'axisbg': 'w',
-         'title': 'Obtención de $P_c(L)$ Método 1'}
-ax1 = fig.add_subplot(111, **kargs)
-ax1.errorbar(Ls, pc, yerr=sd, fmt='--s', label='$<p_c>$')
-ax1.legend(loc='lower right')
+if figuras[0]:
+    fig1 = plt.figure(figsize=(9,7))
 
-fig = plt.figure()
-kargs = {'xlabel': '$L$',
-         'ylabel': '$p_c$',
-         'xscale': 'linear',
-         'yscale': 'linear',
-         'axisbg': 'w',
-         'title': 'Dispersión para $p_c(L)$ - Método 1'}
-ax2 = fig.add_subplot(111, **kargs)
-ax2.plot(Ls, sd, '--s', label='Dispersión $\sigma$')
-ax2.legend(loc='upper right')
+    plt.errorbar(Ls, pc, yerr=sd, fmt='--s', color = 'k',
+                 label='$<p_c>$')
 
-plt.show()
+    plt.title(r'Obtención de $\langle p_c \rangle_L$ por biyección',
+              fontsize=18)
+    plt.legend(loc='best',fontsize=15)
+    plt.grid()
+    plt.tick_params(labelsize=15)
+    plt.xlabel('$L$', fontsize=18)
+    plt.ylabel(r'$\langle p_c \rangle_L$', fontsize=18)
+    plt.show()
+
+if figuras[1]:
+    fig2 = plt.figure(figsize=(9,7))
+
+    plt.plot(Ls, sd, '--s', color='k',
+             label='Dispersión $\sigma$')
+
+    plt.title(r'Dispersión para $\langle p_c \rangle_L$ por biyección',
+              fontsize=18)
+    plt.legend(loc='best',fontsize=15)
+    plt.grid()
+    plt.tick_params(labelsize=15)
+    plt.xlabel(r'$L$', fontsize=18)
+    plt.ylabel(r'$\langle p_c \rangle_L$', fontsize=18)
+    plt.show()
+
+if figuras[2]:
+    fig3 = plt.figure(figsize=(9,7))
+
+    plt.plot(sd, pc, '--s', color='k',
+             label='Dispersión $\sigma$')
+
+    plt.title(r'$\langle p_c \rangle_L$ en función de $\sigma$',
+              fontsize=18)
+    plt.legend(loc='best',fontsize=15)
+    plt.grid()
+    plt.tick_params(labelsize=15)
+    plt.xlabel(r'$\sigma$', fontsize=18)
+    plt.ylabel(r'$\langle p_c \rangle_L$', fontsize=18)
+    plt.show()

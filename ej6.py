@@ -2,24 +2,39 @@ import numpy as np
 import matplotlib.pyplot as plt
 from percolar import Percolacion as perc
 from scipy import stats
+import argparse
 
-# Punto 5
-# Halla el coeficiente gamma utilizando los eps que maximizan ns
+parser = argparse.ArgumentParser()
+parser.add_argument('-N', type=int, default=5000)
+parser.add_argument('-i', type=float, default=0.4)
+parser.add_argument('-f', type=float, default=0.7)
+parser.add_argument('-p', type=float, default=0.001)
+parser.add_argument('-lmin', type=int, default=7)
+parser.add_argument('-lmax', type=int, default=7)
+parser.add_argument('-pc', type=float, default=0.5927)
+parser.add_argument('-nsp', type=float, default=0.35)
+parser.add_argument('-ventana', type=int, default=5)
+params = parser.parse_args()
 
-# Número de realizaciones
-N = 20000
+# Mínimo número de iteraciones aceptado para añadir el punto
+N = params.N
+# Fraccion ocupada por el cluster percolante
+nsp = params.nsp
+# prob inicial y final
+p1 = params.i
+p2 = params.f
+paso = params.p
+# Red mas pequeña y mas grande en potencias de 2
+lmin = params.lmin
+lmax = params.lmax
 # Tamaños de las redes utilizadas
-Ls = np.array([16, 32, 64, 128, 256, 512, 1024])
-Ls = np.array([128])
+Ls = 2**np.arange(lmin,lmax+1)
 # Probabilidades estudiadas
-p1 = 0.55
-p2 = 0.65
-paso = 0.001
 probs = np.arange(p1, p2, paso)
-# Menor y mayor fragmento considerado
-smin = 1
-smax = 6000
-st = smax - smin
+puntos = len(probs)
+mascara = list()
+# Pc
+pc = params.pc
 # Lista de numero de fragmentos de tamaño s
 # nss[i][j][k] corresponde a nss[L][prob][s]
 nss = list()
@@ -30,39 +45,66 @@ for i, L in enumerate(Ls):
     # Crea la instancia de la red para el tamaño correspondiente de la lista.
     # Al hacer esto se recuperan los resultados guardados.
     redes.append(perc(L))
-    nss.append(np.zeros((len(probs), st)))
+    mascara.append(np.zeros(puntos, dtype=bool))
 
 for i, red in enumerate(redes):
+    # Menor y mayor fragmento considerado
+    smin = 1
+    smax = int(nsp * (Ls[i]**2))
+    st = smax - smin
+    nss.append(np.zeros((len(probs), st)))
     for j, prob in enumerate(probs):
         red.prob = prob
-        if red.N < N:
-            restantes = int(N - red.N)
-            red.iterar_prob_fija(N=restantes, n_threads=8)
-        print('L: ' + str(Ls[i]) + ' - p:' + str(prob) + ' '*10,
-              end='\r')
-        nss[i][j] = red.ns[smin:smax]
+        if red.N >= N:
+            mascara[i][j] = True
+            nss[i][j] = red.ns[smin:smax]
+        else:
+            mascara[i][j] = False
 
-s = np.arange(smin,smax)
+for i, L in enumerate(Ls):
+    # Menor y mayor fragmento considerado
+    smin = 1
+    smax = int(nsp * (Ls[i]**2))
+    st = smax - smin
 
-m2 = np.zeros(len(probs))
+    s = np.arange(smin,smax)
 
-for j, prob in enumerate(probs):
-    m2[j] = np.sum(nss[0][j] * (s**2))
+    m2 = np.zeros(len(probs))
 
-plt.plot(probs, m2, 'o')
-plt.axvline(0.5927)
-plt.show()
+    for j, prob in enumerate(probs):
+        m2[j] = np.sum(nss[i][j] * (s**2))
 
-delta = 2
-gammas = np.zeros(len(probs))
-epsilons = np.zeros(len(probs))
-for j, prob in enumerate(probs[delta:-delta]):
-    x = probs[j:j+delta*2]
-    y = m2[j:j+delta*2]
-    gammas[j] = stats.linregress(np.log(x), np.log(y))[0]
-    epsilons[j] = probs[j+delta] - 0.5927
+    m2inv = m2[::-1]
+    m2izq = m2[0:np.argmax(m2>np.amax(m2)*0.8)]
+    m2der = m2inv[0:np.argmax(m2inv>np.amax(m2)*0.8)]
 
-plt.plot(abs(epsilons), abs(gammas), 'o')
-plt.show()
+    probinv = probs[::-1]
+    probizq = probs[0:np.argmax(m2>np.amax(m2)*0.8)]
+    probder = probinv[0:np.argmax(m2inv>np.amax(m2)*0.8)]
 
+    plt.plot(probizq, m2izq)
+    plt.plot(probder, m2der)
+    plt.show()
+    plt.loglog(probizq, m2izq)
+    plt.loglog(probder, m2der)
+    plt.show()
 
+    ventana = params.ventana
+
+    pivotes = list()
+    rectas = list()
+
+    for j, prob in enumerate(probizq[ventana:-ventana]):
+        x = np.log(probizq[j:j+ventana*2])
+        y = np.log(m2izq[j:j+ventana*2])
+        pivotes.append(np.log(m2izq[j]))
+        rectas.append(np.polyfit(x, y, 1)[0])
+
+    for j, prob in enumerate(probder[ventana:-ventana]):
+        x = np.log(probder[j:j+ventana*2])
+        y = np.log(m2der[j:j+ventana*2])
+        pivotes.append(np.log(m2der[j]))
+        rectas.append(abs(np.polyfit(x, y, 1)[0]))
+
+    plt.plot(pivotes,rectas, 'o')
+    plt.show()

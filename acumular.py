@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from percolar import Percolacion as perc
 import argparse
@@ -7,6 +8,7 @@ parser.add_argument('-info', action='store_true', default=False)
 parser.add_argument('-barrido', action='store_true', default=False)
 parser.add_argument('-biyeccion', action='store_true', default=False)
 parser.add_argument('-N', type=int, default=80)
+parser.add_argument('-threads', type=int, default=8)
 parser.add_argument('-i', type=float, default=0.0)
 parser.add_argument('-f', type=float, default=1.0)
 parser.add_argument('-p', type=float, default=0.01)
@@ -18,13 +20,16 @@ params = parser.parse_args()
 ruta = './datos/'
 # Número de realizaciones
 N = params.N
+# Número de hilos
+threads = params.threads
 # prob inicial y final
 p1 = params.i
 p2 = params.f
 paso = params.p
-pot = params.l
+lmin = params.lmin
+lmax = params.lmax
 # Tamaños de las redes utilizadas
-Ls = 2**np.arange(4,pot+1)
+Ls = 2**np.arange(lmin,lmax+1)
 # Probabilidades estudiadas
 probs = np.arange(p1, p2, paso)
 
@@ -41,14 +46,19 @@ if params.info:
 
 if params.barrido:
     print('\nBarrido de probabilidades\n')
+    t_inicial = time.time()
+    t = np.zeros(len(Ls))
     for i, red in enumerate(redes):
         for j, prob in enumerate(probs):
             red.prob = prob
             if red.N < N:
                 restantes = int(N - red.N)
-                red.iterar_prob_fija(N=restantes, n_threads=8)
-                print('Aumentando las iteraciones para L: ' + str(Ls[i]) +
-                      ' - p: ' + str(prob) + ' '*10, end='\r')
+                red.iterar_prob_fija(N=restantes, n_threads=threads)
+            print(' L: ' + str(Ls[i]) + ' - p: ' + str(prob) +
+                  ' '*10, end='\r')
+
+        print('L: ' + str(Ls[i]) + ' - ' +
+              str((time.time() - t_inicial) / 60) + ' '*10)
 
 if params.biyeccion:
     print('\nMétodo de biyección\n')
@@ -65,8 +75,8 @@ if params.biyeccion:
             # Itera hasta alcanzar el objetivo (iteraciones restantes)
             # utilizando múltiples hilos (n_threads)
             for i in range(9):
-                red.iterar_buscar_pc(N=fraccion, n_threads=8)
+                red.iterar_buscar_pc(N=fraccion, n_threads=threads)
                 print('*'*i + '-'*(10-i), end='\r')
-            red.iterar_buscar_pc(N=ultimos, n_threads=8)
+            red.iterar_buscar_pc(N=ultimos, n_threads=threads)
             red.info_pc('Se añadieron ' + str(restantes) +
                         ' nuevas iteraciones a la red.')
