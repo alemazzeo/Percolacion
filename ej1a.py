@@ -7,16 +7,16 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-info', action='store_true', default=False)
-parser.add_argument('-lmin', type=int, default=4)
+parser.add_argument('-lmin', type=int, default=2)
 parser.add_argument('-lmax', type=int, default=10)
 parser.add_argument('-fig', type=int, action='append')
 params = parser.parse_args()
 
 # Figuras a mostrar
 if params.fig is None:
-    figuras = list([True,True,True])
+    figuras = list([True,True,True,True])
 else:
-    figuras = list([False,False,False])
+    figuras = list([False,False,False,False])
     for figs in params.fig:
         figuras[figs-1] = True
 # Red mas pequeña y mas grande en potencias de 2
@@ -48,7 +48,7 @@ if figuras[0]:
     fig1 = plt.figure(figsize=(9,7))
 
     plt.errorbar(Ls, pc, yerr=sd, fmt='--s', color = 'k',
-                 label='$<p_c>$')
+                 capsize=3, label='$<p_c>$')
 
     plt.title(r'Obtención de $\langle p_c \rangle_L$ por biyección',
               fontsize=18)
@@ -61,9 +61,13 @@ if figuras[0]:
 
 if figuras[1]:
     fig2 = plt.figure(figsize=(9,7))
-
-    plt.plot(Ls, sd, '--s', color='k',
+    logx = np.log(Ls)
+    logy = np.log(sd)
+    plt.plot(logx, logy, 's', color='k',
              label='Dispersión $\sigma$')
+    a, b = np.polyfit(logx, logy, 1)
+    plt.plot(logx, a*logx+b,
+               label=r'$\nu = ' + str(round(-1/a,3)) + '$')
 
     plt.title(r'Dispersión para $\langle p_c \rangle_L$ por biyección',
               fontsize=18)
@@ -76,9 +80,15 @@ if figuras[1]:
 
 if figuras[2]:
     fig3 = plt.figure(figsize=(9,7))
-
-    plt.plot(sd, pc, '--s', color='k',
+    logx = np.log(Ls[:])
+    logy = np.log(abs(pc[:] - 0.5927))
+    plt.plot(logx, logy, 's', color='k',
              label='Dispersión $\sigma$')
+    a, b = np.polyfit(logx, logy, 1)
+    plt.plot(logx, a*logx+b,
+             label=r'$\nu = ' + str(round(-1/a,3)) + '$')
+    plt.plot(logx, -(3/4)*logx - 5,
+             label=)
 
     plt.title(r'$\langle p_c \rangle_L$ en función de $\sigma$',
               fontsize=18)

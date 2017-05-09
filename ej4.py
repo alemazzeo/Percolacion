@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from percolar import Percolacion as perc
 import argparse
+from cycler import cycler
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-N', type=int, default=10000)
@@ -13,8 +14,17 @@ parser.add_argument('-lmax', type=int, default=6)
 parser.add_argument('-tau', type=float, default=2.054945055)
 parser.add_argument('-sigma', type=float, default=0.395604396)
 parser.add_argument('-pc', type=float, default=0.5927)
+parser.add_argument('-fig', type=int, action='append')
 params = parser.parse_args()
 
+
+# Figuras a mostrar
+if params.fig is None:
+    figuras = list([True,True,True,True,True,True])
+else:
+    figuras = list([False,False,False,False,False,False])
+    for figs in params.fig:
+        figuras[figs-1] = True
 # Mínimo número de iteraciones aceptado para añadir el punto
 N = params.N
 # prob inicial y final
@@ -99,26 +109,49 @@ for i, L in enumerate(Ls):
         z_stats[i][j] = np.median(zs[i][j*st[i]:(j+1)*st[i]])
         fz_stats[i][j] = np.median(fzs[i][j*st[i]:(j+1)*st[i]])
 
-# Figuras: Colapso de datos para cada red
 
-for i, L in enumerate(Ls):
-        fig = plt.figure()
-        kargs = {'xlabel': '$z$',
-                 'ylabel': '$F(z)$',
-                 'xscale': 'linear',
-                 'yscale': 'linear',
-                 'axisbg': 'w',
-                 'title': 'Fúncion de scaling - Colapso de datos'}
-        ax1 = fig.add_subplot(111, **kargs)
+if figuras[0]:
+
+    for i, L in enumerate(Ls):
+        fig1 = plt.figure(figsize=(9,7))
+
         tamaño = str(Ls[i]) + 'x' + str(Ls[i])
         probabilidad = 'p: ' + str(p1) + ' a ' + str(p2)
         muestras = str(puntos) + ' puntos'
-        ax1.semilogy(zs[i], fzs[i], ',', label='$F(z)$ - ' + tamaño)
         ajuste = '$F(z)$ agrupados'
-        ax1.semilogy(z_stats[i], fz_stats[i], 'r', label=ajuste)
-        ax1.legend(loc='best',
-                   title= probabilidad + ' - ' + muestras)
+
+        plt.semilogy(zs[i], fzs[i], 'o',
+                     color='0.5', markersize=1,
+                     label='$F(z)$ - ' + tamaño)
+        plt.semilogy(z_stats[i], fz_stats[i], lw=2,
+                     color='k', label=ajuste)
+
+        plt.title(r'Función de scaling - Colapso de datos', fontsize=18)
+        plt.legend(loc='best', fontsize=15)
+        plt.grid()
+        plt.tick_params(labelsize=15)
+        plt.xlabel('$z$', fontsize=18)
+        plt.ylabel(r'$f(z)$', fontsize=18)
         plt.show()
+
+plt.rc('axes', prop_cycle=(cycler('color', ['0.6','0.4','0.2'])))
+
+if figuras[1]:
+    fig1 = plt.figure(figsize=(9,7))
+    for i, L in enumerate(Ls):
+        tamaño = str(Ls[i]) + 'x' + str(Ls[i])
+        probabilidad = 'p: ' + str(p1) + ' a ' + str(p2)
+        muestras = str(puntos) + ' puntos'
+        ajuste = '$F(z)$ -' + tamaño
+        plt.semilogy(z_stats[i], fz_stats[i], 'o', label=ajuste)
+
+    plt.title(r'Función de scaling - Colapso de datos', fontsize=18)
+    plt.legend(loc='best', fontsize=15)
+    plt.grid()
+    plt.tick_params(labelsize=15)
+    plt.xlabel('$z$', fontsize=18)
+    plt.ylabel(r'$f(z)$', fontsize=18)
+    plt.show()
 
 # Figura: Detalle de zs
 

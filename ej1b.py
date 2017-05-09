@@ -11,7 +11,6 @@ plt.rc('axes', prop_cycle=(cycler('color', ['0.7','0.6','0.5',
                            cycler('linestyle', ['--', '-', '--',
                                                 '-', '--', '-'])))
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-N', type=int, default=1000)
 parser.add_argument('-i', type=float, default=0.5)
@@ -104,7 +103,7 @@ if figuras[0]:
                  label='Red de ' + tamaño)
 
     plt.title(r'Probabilidad de aparición del cluster percolante', fontsize=18)
-    plt.legend(loc='lower right', fontsize=15)
+    plt.legend(loc='best', fontsize=15)
     plt.grid()
     plt.tick_params(labelsize=15)
     plt.xlabel('$p$', fontsize=18)
@@ -122,7 +121,7 @@ if figuras[1]:
                  label='Red de ' + tamaño)
 
     plt.title(r'Fuerza de percolación $P(p)$', fontsize=18)
-    plt.legend(loc='lower right', fontsize=15)
+    plt.legend(loc='best', fontsize=15)
     plt.grid()
     plt.tick_params(labelsize=15)
     plt.xlabel(r'$p$', fontsize=18)
@@ -140,7 +139,7 @@ if figuras[2]:
                  label='Red de ' + tamaño)
 
     plt.title(r'Fuerza de percolación $P(p)/p$', fontsize=18)
-    plt.legend(loc='lower right', fontsize=15)
+    plt.legend(loc='best', fontsize=15)
     plt.grid()
     plt.tick_params(labelsize=15)
     plt.xlabel(r'$p$', fontsize=18)
@@ -159,7 +158,7 @@ if figuras[3]:
                  label='Red de ' + tamaño)
 
     plt.title(r'Cantidad de clusters percolantes múltiples', fontsize=18)
-    plt.legend(loc='lower right', fontsize=15)
+    plt.legend(loc='best', fontsize=15)
     plt.grid()
     plt.tick_params(labelsize=15)
     plt.xlabel(r'$p$', fontsize=18)
@@ -177,7 +176,7 @@ if figuras[4]:
                  label='Red de ' + tamaño)
 
     plt.title(r'Nodos no percolantes ocupados', fontsize=18)
-    plt.legend(loc='lower right', fontsize=15)
+    plt.legend(loc='best', fontsize=15)
     plt.grid()
     plt.tick_params(labelsize=15)
     plt.xlabel(r'$p$', fontsize=18)
@@ -198,7 +197,7 @@ if figuras[5]:
                  label='Red de ' + tamaño)
 
     plt.title(r'Derivada de nodos no percolantes ocupados', fontsize=18)
-    plt.legend(loc='lower right', fontsize=15)
+    plt.legend(loc='best', fontsize=15)
     plt.grid()
     plt.tick_params(labelsize=15)
     plt.xlabel(r'$p$', fontsize=18)
