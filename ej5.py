@@ -7,15 +7,15 @@ from scipy import stats
 # Halla el coeficiente gamma utilizando los eps que maximizan ns
 
 # Número de realizaciones
-N = 20000
+N = 8000
 # Tamaños de las redes utilizadas
 Ls = np.array([16, 32, 64, 128, 256, 512, 1024])
-Ls = np.array([64])
 # Probabilidades estudiadas
 p1 = 0.0
 p2 = 1.0
 paso = 0.01
 probs = np.arange(p1, p2, paso)
+puntos = len(probs)
 # Menor y mayor fragmento considerado
 smin = 1
 smax = 15
@@ -44,12 +44,12 @@ for i, red in enumerate(redes):
     arg_pmax = np.argmax(nss[i],axis=0)
     pmax = probs[arg_pmax]
 
+    x = np.log(np.arange(smin,smax,1))
+    y = np.log(abs(pmax-0.5927))
 
-x = np.log(np.arange(smin,smax,1))
-y = np.log(abs(pmax-0.5927))
+    plt.plot(x, y)
+    a, b = stats.linregress(x,y)[0:2]
+    plt.plot(x, a*x + b)
 
-plt.plot(x, y)
-a, b = stats.linregress(x,y)[0:2]
-plt.plot(x, a*x + b)
 plt.show()
 print(a)
