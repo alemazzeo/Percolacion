@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from percolar import Percolacion as perc
 from scipy import stats
@@ -9,8 +11,8 @@ parser.add_argument('-N', type=float, default=1000)
 parser.add_argument('-i', type=float, default=0.56)
 parser.add_argument('-f', type=float, default=0.61)
 parser.add_argument('-p', type=float, default=0.001)
-parser.add_argument('-lmin', type=int, default=7)
-parser.add_argument('-lmax', type=int, default=7)
+parser.add_argument('-lmin', type=int, default=10)
+parser.add_argument('-lmax', type=int, default=10)
 parser.add_argument('-tau', type=float, default=2.054945055)
 parser.add_argument('-fig', type=int, action='append')
 params = parser.parse_args()
@@ -55,8 +57,8 @@ for L in Ls:
     taus.append(np.zeros(puntos))
 
 for i, red in enumerate(redes):
-    si = 500
-    sf = 1500
+    si = 100
+    sf = 4000
     s = np.arange(si,sf)
 
     for j, prob in enumerate(probs):
@@ -71,7 +73,8 @@ for i, red in enumerate(redes):
 
             logx = np.log(x[positivos])
             logy = np.log(y[positivos])
-            #plt.plot(logx,logy)
+            if j % 10 == 0:
+                plt.plot(logx,logy, 's')
 
             a, b = np.polyfit(logx, logy, 1)
             taus[i][j] = a
@@ -79,7 +82,7 @@ for i, red in enumerate(redes):
         else:
             mascara[i][j] = False
 
-    #plt.show()
+    plt.show()
 
 # Figura: Ajuste chi cuadrado
 
@@ -91,7 +94,8 @@ if figuras[0]:
         tamaño = str(Ls[i]) + 'x' + str(Ls[i])
         plt.plot(probs[mascara[i]], chi2[i][mascara[i]],
                  'o', color='k', label='Red de ' + tamaño)
-
+    plt.axvline(0.58)
+    plt.axvline(0.59276)
     plt.title(r'Ajuste $\chi^2$ a la distribución de fragmentos', fontsize=18)
     plt.legend(loc='best', fontsize=15)
     plt.grid()
@@ -111,6 +115,10 @@ if figuras[1]:
         plt.plot(probs[mascara[i]], taus[i][mascara[i]],
                  'o', color='k', label='Red de ' + tamaño)
 
+    plt.axvline(0.58, linestyle='--', color='k')
+    plt.axhline(-1.76, linestyle='--', color='k')
+    plt.axvline(0.59276, linestyle='--', color='k')
+    plt.axhline(-1.96, linestyle='--', color='k')
     plt.title(r'Valores de $\tau$', fontsize=18)
     plt.legend(loc='best', fontsize=15)
     plt.grid()

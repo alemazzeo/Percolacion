@@ -1,32 +1,26 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from percolar import Percolacion as perc
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-N', type=float, default=1000)
-parser.add_argument('-i', type=float, default=0.6)
-parser.add_argument('-f', type=float, default=0.7)
-parser.add_argument('-p', type=float, default=0.05)
-parser.add_argument('-lmin', type=int, default=4)
-parser.add_argument('-lmax', type=int, default=100)
-parser.add_argument('-tau', type=float, default=2.054945055)
-parser.add_argument('-q', type=float, default=400)
-parser.add_argument('-pc', type=float, default=0.5927)
+parser.add_argument('-N', type=float, default=10000)
+parser.add_argument('-prob', type=float, default=0.59335)
+parser.add_argument('-pc', type=float, default=0.59276)
 params = parser.parse_args()
 
 # Número de realizaciones
-N = 27000
-# prob inicial y final
-p1 = params.i
-p2 = params.f
-paso = params.p
+N = params.N
 # Tamaños de las redes utilizadas
-Ls = np.arange(4, 100, 1)
-# Probabilidades estudiadas
-probs = np.arange(p1, p2, paso)
+Ls = np.array([32,48,64,96,128,192,256,384,512,640,768,896,1024])
+ruta = './datos/dfractal2/'
+# Probabilidades estudiada
+prob = params.prob
+pc = params.pc
+probs = np.array([pc, prob])
 puntos = len(probs)
-mascara = list()
 # Densidad del cluster percolante
 snps = list()
 fps = list()
@@ -37,8 +31,7 @@ redes = list()
 for L in Ls:
     # Crea la instancia de la red para el tamaño correspondiente de la lista.
     # Al hacer esto se recuperan los resultados guardados.
-    redes.append(perc(L, ruta='./datos/dfractal/'))
-    mascara.append(np.zeros(puntos, dtype=bool))
+    redes.append(perc(L, ruta=ruta))
     snps.append(np.zeros(puntos))
     fps.append(np.zeros(puntos))
     fpps.append(np.zeros(puntos))
@@ -49,25 +42,83 @@ for i, red in enumerate(redes):
         if red.N < N:
             restantes = int(N - red.N)
             red.iterar_prob_fija(N=restantes, n_threads=8)
+
         snps[i][j] = red.snp
         fps[i][j] = red.spt
         fpps[i][j] = red.fppt
 
-# Figura: Comportamiento de
+# Figura: Dimensión fractal
 
-kargs = {'xlabel': '$L$ (tamaño de la red)',
-         'ylabel': r'$\rho(L)$',
-         'axisbg': 'w',
-         'title': 'Dimensión fractal'}
+fig1 = plt.figure(figsize=(9,7))
+fig1.subplots_adjust(left=0.20)
 
-fig = plt.figure()
-ax = fig.add_subplot(111, **kargs)
+# Probabilidad crítica
 
-for j, prob in enumerate(probs):
-    y = np.zeros(len(Ls))
-    for i, L in enumerate(Ls):
-        y[i] = fps[i][j]
-    ax.loglog(Ls, y, 'o', label='Probabilidad ' + str(prob))
-    ax.legend(loc='lower right', title='Iteraciones: ' + str(N))
+j = 0
+y = np.zeros(len(Ls))
 
+for i, L in enumerate(Ls):
+    y[i] = fps[i][j]
+
+logx = np.log(Ls[3:])
+logy = np.log(y[3:])
+plt.plot(logx, logy, 'ok', label='Probabilidad ' + str(probs[j]))
+a, b = np.polyfit(logx, logy, 1)
+chi2 = np.sum((logy - (a*logx+b))**2)
+D = '% 10.3f ' % (a + 2)
+#sd = '% 10.3f ' % (chi2**0.5)
+etiqueta = '$D=' + D + '$'
+plt.plot(logx, logx*a+b, '--k',label=etiqueta)
+
+plt.title(r'Dimensión fractal',
+          fontsize=18)
+plt.legend(loc='best',fontsize=15)
+plt.grid()
+plt.tick_params(labelsize=15)
+plt.xlabel(r'$log(L)$', fontsize=18)
+plt.ylabel(r'$log(\rho)$)', fontsize=18)
+plt.show()
+
+# Probabilidad critica + corrimiento
+
+fig2 = plt.figure(figsize=(9,7))
+fig2.subplots_adjust(left=0.20)
+
+j = 1
+y = np.zeros(len(Ls))
+
+for i, L in enumerate(Ls):
+    y[i] = fps[i][j]
+
+logx = np.log(Ls)
+logy = np.log(y)
+plt.plot(logx, logy, 'ok', label='Probabilidad ' + str(probs[j]))
+
+i1 = 0
+i2 = 7
+
+a, b = np.polyfit(logx[i1:i2], logy[i1:i2], 1)
+chi2 = np.sum((logy[i1:i2] - (a*logx[i1:i2]+b))**2)
+D = '% 10.3f ' % a
+#sd = '% 10.3f ' % (chi2**0.5)
+etiqueta = '$D-d=' + D + '$'
+plt.plot(logx[i1:i2], logx[i1:i2]*a+b, '--k',label=etiqueta)
+
+i1 = 6
+i2 = 13
+
+a, b = np.polyfit(logx[i1:i2], logy[i1:i2], 1)
+chi2 = np.sum((logy[i1:i2] - (a*logx[i1:i2]+b))**2)
+D = '% 10.3f ' % a
+#sd = '% 10.3f ' % (chi2**0.5)
+etiqueta = '$D-d=' + D + '$'
+plt.plot(logx[i1:i2], logx[i1:i2]*a+b, ':k', label=etiqueta)
+
+plt.title(r'Dimensión fractal',
+          fontsize=18)
+plt.legend(loc='best',fontsize=15)
+plt.grid()
+plt.tick_params(labelsize=15)
+plt.xlabel(r'$log(L)$', fontsize=18)
+plt.ylabel(r'$log(\rho)$', fontsize=18)
 plt.show()
