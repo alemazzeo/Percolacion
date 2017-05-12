@@ -13,9 +13,9 @@ plt.rc('axes', prop_cycle=(cycler('color', ['0.7','0.6','0.5',
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-N', type=int, default=1000)
-parser.add_argument('-i', type=float, default=0.5)
-parser.add_argument('-f', type=float, default=0.8)
-parser.add_argument('-p', type=float, default=0.01)
+parser.add_argument('-i', type=float, default=0.4)
+parser.add_argument('-f', type=float, default=0.7)
+parser.add_argument('-p', type=float, default=0.002)
 parser.add_argument('-lmin', type=int, default=5)
 parser.add_argument('-lmax', type=int, default=10)
 parser.add_argument('-fig', type=int, action='append')

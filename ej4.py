@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from percolar import Percolacion as perc
 import argparse
@@ -10,7 +12,7 @@ parser.add_argument('-i', type=float, default=0.0)
 parser.add_argument('-f', type=float, default=1.0)
 parser.add_argument('-p', type=float, default=0.01)
 parser.add_argument('-lmin', type=int, default=4)
-parser.add_argument('-lmax', type=int, default=6)
+parser.add_argument('-lmax', type=int, default=7)
 parser.add_argument('-tau', type=float, default=2.054945055)
 parser.add_argument('-sigma', type=float, default=0.395604396)
 parser.add_argument('-pc', type=float, default=0.5927)
@@ -131,10 +133,11 @@ if figuras[0]:
         plt.grid()
         plt.tick_params(labelsize=15)
         plt.xlabel('$z$', fontsize=18)
-        plt.ylabel(r'$f(z)$', fontsize=18)
+        plt.ylabel(r'$log(f(z))$', fontsize=18)
         plt.show()
 
-plt.rc('axes', prop_cycle=(cycler('color', ['0.6','0.4','0.2'])))
+plt.rc('axes', prop_cycle=(cycler('color', ['0.6','0.4','0.2'])+
+                           cycler('marker', ['o','s','*'])))
 
 if figuras[1]:
     fig1 = plt.figure(figsize=(9,7))
@@ -143,36 +146,12 @@ if figuras[1]:
         probabilidad = 'p: ' + str(p1) + ' a ' + str(p2)
         muestras = str(puntos) + ' puntos'
         ajuste = '$F(z)$ -' + tamaño
-        plt.semilogy(z_stats[i], fz_stats[i], 'o', label=ajuste)
+        plt.semilogy(z_stats[i], fz_stats[i], lw=0, label=ajuste)
 
     plt.title(r'Función de scaling - Colapso de datos', fontsize=18)
     plt.legend(loc='best', fontsize=15)
     plt.grid()
     plt.tick_params(labelsize=15)
     plt.xlabel('$z$', fontsize=18)
-    plt.ylabel(r'$f(z)$', fontsize=18)
+    plt.ylabel(r'$log(f(z))$', fontsize=18)
     plt.show()
-
-# Figura: Detalle de zs
-
-i = 0
-
-fig = plt.figure()
-kargs = {'xlabel': r'(i,j)',
-         'ylabel': r'$z(\varepsilon_i,s_j)$',
-         'xscale': 'linear',
-         'yscale': 'linear',
-         'axisbg': 'w',
-         'title': 'Fúncion de scaling - Valores de z'}
-ax1 = fig.add_subplot(111, **kargs)
-tamaño = str(Ls[i]) + 'x' + str(Ls[i])
-probabilidad = 'p: ' + str(p1) + ' a ' + str(p2)
-muestras = str(puntos) + ' puntos'
-ax1.plot(np.linspace(0,1,len(zs[i])), zs[i], ',',
-         label='$z(\varepsilon_i,s_j)$ - ' + tamaño)
-ajuste = '$z$ agrupados'
-ax1.plot(np.linspace(0,1,len(z_stats[0])), z_stats[0],
-         'r', label=ajuste)
-ax1.legend(loc='best',
-           title= probabilidad + ' - ' + muestras)
-plt.show()
